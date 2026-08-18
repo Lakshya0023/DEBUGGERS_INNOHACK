@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BhoomiSeva — Land Record Services Portal | All India</title>
+<meta name="description" content="Complete Indian land record services — 7/12 Satbara, RTC/Pahani, Khatauni, Adangal, Jamabandi, Mutation, LPC, EC, ULPIN, Bhu-Naksha. All 12 state systems."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+:root{--bg:#0a0f1a;--bg2:#0f1629;--glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.08);--blue:#1d4ed8;--blue-l:#3b82f6;--green:#16a34a;--green-l:#22c55e;--orange:#d97706;--orange-l:#f59e0b;--purple:#7c3aed;--purple-l:#a78bfa;--red:#dc2626;--red-l:#f87171;--teal:#0e7490;--teal-l:#22d3ee;--t1:#f1f5f9;--t2:#94a3b8;--t3:#64748b;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+.top-nav{background:rgba(10,15,26,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;padding:0 24px;display:flex;align-items:center;gap:24px;height:56px}
+.nav-logo{font-size:1.1rem;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
+.nav-links{display:flex;gap:4px;flex:1}
+.nav-links a{color:var(--t2);text-decoration:none;padding:6px 12px;border-radius:6px;font-size:13px;transition:all .2s}
+.nav-links a:hover,.nav-links a.active{color:#fff;background:var(--glass2)}
+.nav-badge{background:var(--green);color:#fff;font-size:10px;padding:2px 6px;border-radius:20px;margin-left:4px}
+.app-body{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:240px;min-width:240px;background:var(--bg2);border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;position:sticky;top:56px;height:calc(100vh - 56px)}
+.sidebar-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--t3);padding:8px 8px 4px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--t2);text-decoration:none;font-size:13px;cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left}
+.sidebar-link:hover,.sidebar-link.active{background:var(--glass2);color:#fff}
+.icon{width:20px;text-align:center;font-size:15px}
+.main-area{flex:1;padding:24px;overflow-y:auto;max-width:calc(100vw - 240px)}
+.section-header{margin-bottom:24px}
+.section-header h1{font-size:1.5rem;font-weight:700}
+.section-header p{color:var(--t2);margin-top:4px;font-size:13px}
+.breadcrumb{font-size:12px;color:var(--t3);margin-bottom:8px}
+.breadcrumb a{color:var(--t2);text-decoration:none}
+.service-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:28px}
+.service-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .25s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.service-card:hover{background:var(--glass2);border-color:var(--blue-l);transform:translateY(-2px)}
+.svc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.service-card h3{font-size:12px;font-weight:600;color:var(--t1)}
+.service-card p{font-size:11px;color:var(--t2)}
+.ib{background:rgba(29,78,216,.15)}.ig{background:rgba(22,163,74,.15)}.io{background:rgba(217,119,6,.15)}.ip{background:rgba(124,58,237,.15)}.ir{background:rgba(220,38,38,.15)}.it{background:rgba(14,116,163,.15)}
+.group-heading{display:flex;align-items:center;gap:12px;margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.group-heading h2{font-size:1rem;font-weight:700}
+.group-badge{background:var(--glass);border:1px solid var(--border);border-radius:20px;font-size:11px;padding:2px 10px;color:var(--t2)}
+.tabs-row{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:thin}
+.tab-pill{flex-shrink:0;background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer;transition:all .2s;color:var(--t2)}
+.tab-pill.active,.tab-pill:hover{background:var(--blue);border-color:var(--blue-l);color:#fff}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal-box{background:#111827;border:1px solid var(--border);border-radius:16px;width:min(720px,100%);max-height:90vh;overflow-y:auto}
+.modal-hdr{padding:20px 24px 16px;display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;background:#111827;border-bottom:1px solid var(--border);z-index:2}
+.modal-hdr h2{font-size:1.05rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--t2);cursor:pointer;font-size:20px;padding:4px}
+.modal-close:hover{color:#fff}
+.modal-body{padding:24px}
+.doc-stamp{background:linear-gradient(135deg,rgba(22,163,74,.1),rgba(29,78,216,.1));border:1px solid rgba(22,163,74,.2);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.doc-stamp-text h3{font-size:13px;font-weight:700;color:var(--green-l)}
+.doc-stamp-text p{font-size:11px;color:var(--t2);margin-top:2px}
+.doc-qr{font-size:36px}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:16px}
+.detail-item{background:var(--glass);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+.detail-item label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);display:block;margin-bottom:2px}
+.detail-item span{font-size:13px;font-weight:600;color:var(--t1);word-break:break-all}
+.bc{background:rgba(22,163,74,.15);color:var(--green-l);border:1px solid rgba(22,163,74,.3)}
+.bd{background:rgba(220,38,38,.15);color:var(--red-l);border:1px solid rgba(220,38,38,.3)}
+.bm{background:rgba(217,119,6,.15);color:var(--orange-l);border:1px solid rgba(217,119,6,.3)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.table-sm{width:100%;border-collapse:collapse;font-size:12px}
+.table-sm th{background:var(--glass2);padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3)}
+.table-sm td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.table-sm tr:last-child td{border-bottom:none}
+.card{background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:700;margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.04em}
+.form-control{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px;outline:none;transition:border-color .2s}
+.form-control:focus{border-color:var(--blue-l)}
+.form-control option{background:#1e293b}
+select.form-control{cursor:pointer}
+textarea.form-control{resize:vertical;min-height:80px}
+.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .2s}
+.btn-p{background:var(--blue);color:#fff}
+.btn-p:hover{background:#2563eb}
+.btn-s{background:var(--green);color:#fff}
+.btn-s:hover{background:#15803d}
+.btn-o{background:transparent;border:1px solid var(--border);color:var(--t2)}
+.btn-o:hover{border-color:var(--blue-l);color:#fff}
+.stepper{display:flex;margin:12px 0;overflow-x:auto}
+.step-item{display:flex;align-items:flex-start;flex:1;min-width:0}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step-dot.done{background:var(--green);color:#fff}
+.step-dot.current{background:var(--blue);color:#fff}
+.step-dot.pending{background:var(--glass2);color:var(--t3);border:1px solid var(--border)}
+.step-line{flex:1;height:2px;background:var(--border);margin:13px 4px 0;min-width:12px}
+.step-line.done{background:var(--green)}
+.step-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.step-lbl{font-size:9px;text-align:center;color:var(--t3);width:60px;word-wrap:break-word}
+.portal-table{width:100%;border-collapse:collapse}
+.portal-table th{background:var(--glass2);padding:10px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3)}
+.portal-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px}
+.portal-table tr:hover td{background:var(--glass)}
+.portal-table a{color:var(--blue-l);text-decoration:none}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kpi label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3)}
+.kpi-val{font-size:1.6rem;font-weight:700;margin:4px 0}
+.kpi-sub{font-size:11px;color:var(--t2)}
+.kb .kpi-val{color:var(--blue-l)}.kg .kpi-val{color:var(--green-l)}.ko .kpi-val{color:var(--orange-l)}.kp .kpi-val{color:var(--purple-l)}
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-bottom:20px}
+.chart-card{background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:16px}
+.chart-card h3{font-size:13px;font-weight:600;margin-bottom:12px}
+.chart-wrap{position:relative;height:190px}
+.info-box{border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:12px;display:flex;gap:10px}
+.info-box.inf{background:rgba(29,78,216,.12);border:1px solid rgba(59,130,246,.25)}
+.info-box.war{background:rgba(217,119,6,.12);border:1px solid rgba(245,158,11,.25)}
+.info-box.ok{background:rgba(22,163,74,.12);border:1px solid rgba(34,197,94,.25)}
+.ib-icon{font-size:16px;flex-shrink:0}
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast-msg{background:#1e293b;border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;animation:slideIn .3s ease}
+.toast-msg.ok{border-color:var(--green-l)}.toast-msg.err{border-color:var(--red-l)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue-l);border-radius:50%;animation:spin .7s linear infinite;margin:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chip{display:inline-block;background:var(--glass2);border:1px solid var(--border);border-radius:20px;font-size:11px;padding:2px 10px;color:var(--t2)}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.faq-item{border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.faq-q{padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;font-size:13px;font-weight:600;transition:background .2s}
+.faq-q:hover{background:var(--glass2)}
+.faq-a{padding:12px 16px;font-size:13px;color:var(--t2);border-top:1px solid var(--border);display:none}
+.faq-a.open{display:block}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="index.html" class="nav-logo">BhoomiSeva</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a><a href="map.html">Map</a><a href="records.html">Records</a>
+    <a href="services.html">Services</a><a href="knowledge.html" class="active">Guide <span class="nav-badge">NEW</span></a>
+    <a href="grievance.html">Grievance</a><a href="admin.html">Admin</a>
+  </div>
+</nav>
+<div class="app-body">
+<aside class="sidebar">
+  <div class="sidebar-section">Record Types</div>
+  <button class="sidebar-link active" onclick="show('s-rtc')"><span class="icon">📄</span>RTC Services (KA)</button>
+  <button class="sidebar-link" onclick="show('s-satbara')"><span class="icon">📑</span>7/12 Satbara (MH)</button>
+  <button class="sidebar-link" onclick="show('s-khatauni')"><span class="icon">📋</span>Khatauni/Khasra (UP)</button>
+  <button class="sidebar-link" onclick="show('s-adangal')"><span class="icon">🌾</span>Adangal/1B (AP/TG)</button>
+  <button class="sidebar-link" onclick="show('s-jamabandi')"><span class="icon">📜</span>Jamabandi (RJ/HR)</button>
+  <button class="sidebar-link" onclick="show('s-khata')"><span class="icon">🏙️</span>Khata Certificate</button>
+  <div class="sidebar-section">More Services</div>
+  <button class="sidebar-link" onclick="show('s-mutation')"><span class="icon">🔄</span>Mutation / Dakhil Kharij</button>
+  <button class="sidebar-link" onclick="show('s-lpc')"><span class="icon">📃</span>LPC (Bihar)</button>
+  <button class="sidebar-link" onclick="show('s-ec')"><span class="icon">🔍</span>Encumbrance Cert</button>
+  <button class="sidebar-link" onclick="show('s-ulpin')"><span class="icon">🆔</span>ULPIN / Bhu-Aadhar</button>
+  <button class="sidebar-link" onclick="show('s-naksha')"><span class="icon">🗺️</span>Bhu-Naksha Map</button>
+  <button class="sidebar-link" onclick="show('s-prm')"><span class="icon">✏️</span>Correction / Parimarjan</button>
+  <div class="sidebar-section">Analytics</div>
+  <button class="sidebar-link" onclick="show('s-dashboard')"><span class="icon">📊</span>Bhoomi Dashboard</button>
+  <div class="sidebar-section">Reference</div>
+  <button class="sidebar-link" onclick="show('s-portals')"><span class="icon">🌐</span>State Portal Directory</button>
+  <button class="sidebar-link" onclick="show('s-guide')"><span class="icon">📖</span>Records Guide</button>
+  <button class="sidebar-link" onclick="show('s-faq')"><span class="icon">❓</span>FAQ</button>
+</aside>
+<main class="main-area">
+
+<!-- RTC -->
+<section id="s-rtc" class="ps">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Karnataka (Bhoomi)</div>
+    <h1>Bhoomi — RTC Services (Karnataka)</h1>
+    <p>Record of Rights, Tenancy and Crops — primary land document in Karnataka</p>
+  </div>
+  <div class="group-heading"><h2>RTC Services</h2><span class="group-badge">7 Services</span></div>
+  <div class="service-grid">
+    <div class="service-card" onclick="doRTC()"><div class="svc-icon ib">📄</div><h3>View RTC and MR</h3><p>Rights &amp; Mutation Register</p></div>
+    <div class="service-card" onclick="doKhata()"><div class="svc-icon ig">📋</div><h3>View Khatha Extract</h3><p>Municipal Khata certificate</p></div>
+    <div class="service-card" onclick="doRTC()"><div class="svc-icon io">📃</div><h3>View RTC Information</h3><p>Quick RTC summary</p></div>
+    <div class="service-card" onclick="doIRTC()"><div class="svc-icon ip">⚡</div><h3>i-RTC</h3><p>Instant RTC with QR</p></div>
+    <div class="service-card" onclick="doIRTC()"><div class="svc-icon it">💳</div><h3>i-RTC Wallet</h3><p>Digital wallet for RTCs</p></div>
+    <div class="service-card" onclick="doNaksha()"><div class="svc-icon ib">🗺️</div><h3>RTC with Sketch</h3><p>RTC + cadastral map [Beta]</p></div>
+    <div class="service-card" onclick="show('s-dashboard')"><div class="svc-icon ir">📊</div><h3>Bhoomi Dashboard</h3><p>District analytics</p></div>
+  </div>
+  <div class="group-heading"><h2>Report Services</h2><span class="group-badge">8 Reports</span></div>
+  <div class="service-grid">
+    <div class="service-card" onclick="doRTC()"><div class="svc-icon ir">⚖️</div><h3>Dispute Cases</h3><p>Active disputes</p></div>
+    <div class="service-card" onclick="show('s-dashboard')"><div class="svc-icon io">🏘️</div><h3>Village Pendency</h3><p>Pending mutations</p></div>
+    <div class="service-card" onclick="show('s-dashboard')"><div class="svc-icon ib">📊</div><h3>Bhoomi Dashboard</h3><p>State analytics</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon ip">📈</div><h3>RTC Mutation History</h3><p>Year-wise chart</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon it">🔍</div><h3>Bagair Hukum</h3><p>Unauthorized occupancy</p></div>
+    <div class="service-card" onclick="show('s-ulpin')"><div class="svc-icon ib">🆔</div><h3>Aadhaar Seeding</h3><p>Linked parcels report</p></div>
+    <div class="service-card" onclick="doRTC()"><div class="svc-icon ig">🌿</div><h3>Land Beat Reports</h3><p>Revenue inspector</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon io">📝</div><h3>Form 57 Applications</h3><p>Conversion apps</p></div>
+  </div>
+  <div class="group-heading"><h2>Land Conversion Services</h2><span class="group-badge">3 Services</span></div>
+  <div class="service-grid">
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon ib">🔄</div><h3>Apply Land Conversion</h3><p>Ag to non-ag</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon ig">👁️</div><h3>View Conversion Status</h3><p>Track request</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon io">⬇️</div><h3>Download Conversion Order</h3><p>Final orders</p></div>
+  </div>
+  <div class="group-heading"><h2>Survey [SSLR] Services</h2><span class="group-badge">3 Services</span></div>
+  <div class="service-grid">
+    <div class="service-card" onclick="doNaksha()"><div class="svc-icon it">📐</div><h3>Survey Documents</h3><p>View SSLR records</p></div>
+    <div class="service-card" onclick="doNaksha()"><div class="svc-icon ip">📋</div><h3>Request Survey Docs</h3><p>Apply for records</p></div>
+    <div class="service-card" onclick="doNaksha()"><div class="svc-icon ib">🗺️</div><h3>Revenue Maps</h3><p>Village/hobli maps</p></div>
+  </div>
+  <div class="group-heading"><h2>Other Services</h2><span class="group-badge">10 Services</span></div>
+  <div class="service-grid">
+    <div class="service-card" onclick="show('s-prm')"><div class="svc-icon ib">👤</div><h3>Citizen Registration</h3><p>Register on Bhoomi</p></div>
+    <div class="service-card" onclick="doIRTC()"><div class="svc-icon ig">✅</div><h3>RTC XML Verification</h3><p>Verify digital hash</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon io">🔄</div><h3>Online Mutation</h3><p>Bhoomi mutation</p></div>
+    <div class="service-card" onclick="show('s-ec')"><div class="svc-icon ip">🏢</div><h3>EODB Services</h3><p>Ease of doing business</p></div>
+    <div class="service-card" onclick="doNaksha()"><div class="svc-icon it">📍</div><h3>Mojini</h3><p>Survey measurement</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon ir">🌀</div><h3>Parihara</h3><p>Disaster compensation</p></div>
+    <div class="service-card" onclick="show('s-prm')"><div class="svc-icon ib">🔤</div><h3>Name Match Algorithm</h3><p>Verify name on RTC</p></div>
+    <div class="service-card" onclick="doNaksha()"><div class="svc-icon ib">📡</div><h3>Dishaank</h3><p>Geo boundary tool</p></div>
+    <div class="service-card" onclick="doRTC()"><div class="svc-icon ig">📃</div><h3>Pahani Online / i-RTC</h3><p>Download portal</p></div>
+    <div class="service-card" onclick="show('s-prm')"><div class="svc-icon io">🌐</div><h3>Citizen Portal</h3><p>Single login services</p></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Search RTC Record</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">District</label><select class="form-control" id="rtc-d"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Taluk</label><select class="form-control" id="rtc-t"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Village</label><select class="form-control" id="rtc-v"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Survey/Hissa No.</label><input class="form-control" id="rtc-s" placeholder="e.g. 123/4P"/></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="doRTC()">View RTC</button>
+      <button class="btn btn-o" onclick="doIRTC()">Get i-RTC</button>
+      <button class="btn btn-o" onclick="doNaksha()">View Map Sketch</button>
+    </div>
+  </div>
+</section>
+
+<!-- 7/12 -->
+<section id="s-satbara" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Maharashtra</div>
+    <h1>7/12 Satbara Utara — Maharashtra</h1>
+    <p>Form 7 (owner rights) + Form 12 (crop cultivation) — most widely referenced land document in India</p>
+  </div>
+  <div class="info-box inf"><span class="ib-icon">ℹ️</span><div>Essential for property transactions, bank loans, and government schemes in Maharashtra. Available at bhulekh.mahabhumi.gov.in</div></div>
+  <div class="card">
+    <div class="card-title">View 7/12 Satbara Utara</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">District</label>
+        <select class="form-control" id="mh-d">
+          <option value="">-- Select --</option><option>Pune</option><option>Mumbai</option><option>Nashik</option><option>Nagpur</option><option>Aurangabad</option>
+        </select></div>
+      <div class="form-group"><label class="form-label">Taluka</label><select class="form-control" id="mh-t"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Village</label><select class="form-control" id="mh-v"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Survey/Gut No.</label><input class="form-control" id="mh-s" placeholder="e.g. 45/2A"/></div>
+      <div class="form-group"><label class="form-label">Search By</label><select class="form-control" id="mh-by"><option>Survey Number</option><option>Owner Name</option><option>Khata Number</option></select></div>
+    </div>
+    <button class="btn btn-p" onclick="doSatbara()">View 7/12 Extract</button>
+    &nbsp;<button class="btn btn-o" onclick="doEC()">Encumbrance Certificate</button>
+  </div>
+  <div id="satbara-res"></div>
+</section>
+
+<!-- KHATAUNI -->
+<section id="s-khatauni" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Uttar Pradesh</div>
+    <h1>Khatauni / Khasra — UP Bhulekh</h1>
+    <p>खसरा खतौनी — Plot and land holding records for Uttar Pradesh</p>
+  </div>
+  <div class="info-box inf"><span class="ib-icon">ℹ️</span><div><strong>Khasra:</strong> Plot-level record (survey no., area, crop, owner). <strong>Khatauni:</strong> All plots owned by one person in a village.</div></div>
+  <div class="card">
+    <div class="card-title">View Khatauni (खतौनी देखें)</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">जनपद (District)</label>
+        <select class="form-control" id="up-d"><option value="">-- जनपद --</option><option>Lucknow</option><option>Varanasi</option><option>Kanpur</option><option>Agra</option><option>Mathura</option></select></div>
+      <div class="form-group"><label class="form-label">तहसील (Tehsil)</label><select class="form-control" id="up-t"><option value="">-- तहसील --</option></select></div>
+      <div class="form-group"><label class="form-label">ग्राम (Village)</label><select class="form-control" id="up-v"><option value="">-- ग्राम --</option></select></div>
+      <div class="form-group"><label class="form-label">Search By</label><select class="form-control" id="up-by"><option>Khasra/Gata Number</option><option>Khata Number</option><option>Owner Name</option><option>Aadhaar Linked</option></select></div>
+      <div class="form-group"><label class="form-label">खसरा/गाटा संख्या</label><input class="form-control" id="up-s" placeholder="e.g. 248/1"/></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="background:var(--glass2);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:14px;font-weight:700;letter-spacing:4px;color:var(--orange-l)">XK83P</div>
+      <input class="form-control" placeholder="Enter captcha" style="width:120px"/>
+      <button class="btn btn-p" onclick="doKhatauni()">उद्धरण देखें</button>
+    </div>
+  </div>
+  <div id="khatauni-res"></div>
+</section>
+
+<!-- ADANGAL -->
+<section id="s-adangal" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / AP / Telangana</div>
+    <h1>Adangal / 1B — Meebhoomi (AP/Telangana)</h1>
+    <p>Pattadar passbook-linked records — crop, water source, soil type, Bhudhaar</p>
+  </div>
+  <div class="info-box inf"><span class="ib-icon">ℹ️</span><div>Also called Pahani in Telangana. Linked with Pattadar Passbook and Bhudhaar number. Available at meebhoomi.ap.gov.in and bhubharati.telangana.gov.in</div></div>
+  <div class="card">
+    <div class="card-title">View Adangal / 1B</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">District</label><select class="form-control" id="ap-d"><option value="">-- Select --</option><option>Visakhapatnam</option><option>Vijayawada</option><option>Warangal</option><option>Hyderabad</option></select></div>
+      <div class="form-group"><label class="form-label">Mandal</label><select class="form-control" id="ap-m"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Village</label><select class="form-control" id="ap-v"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Survey No. / Bhudhaar</label><input class="form-control" id="ap-s" placeholder="e.g. 112/A"/></div>
+      <div class="form-group"><label class="form-label">Search By</label><select class="form-control" id="ap-by"><option>Survey Number</option><option>Account Number</option><option>Pattadar Name</option><option>Bhudhaar Number</option></select></div>
+    </div>
+    <button class="btn btn-p" onclick="doAdangal()">View Adangal</button>
+  </div>
+  <div id="adangal-res"></div>
+</section>
+
+<!-- JAMABANDI -->
+<section id="s-jamabandi" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Rajasthan / Haryana</div>
+    <h1>Jamabandi / Fard — Apna Khata</h1>
+    <p>North India land ownership records with Khewat, Khasra, Khatauni, mutation history</p>
+  </div>
+  <div class="card">
+    <div class="card-title">View Jamabandi Nakal</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">State</label><select class="form-control" id="jb-st"><option value="">-- Select --</option><option>Rajasthan</option><option>Haryana</option><option>Punjab</option></select></div>
+      <div class="form-group"><label class="form-label">District</label><select class="form-control" id="jb-d"><option value="">-- Select --</option><option>Jaipur</option><option>Jodhpur</option><option>Udaipur</option><option>Gurugram</option><option>Ambala</option></select></div>
+      <div class="form-group"><label class="form-label">Tehsil</label><select class="form-control" id="jb-t"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Village</label><select class="form-control" id="jb-v"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Search By</label><select class="form-control" id="jb-by"><option>Khewat Number</option><option>Khasra Number</option><option>Owner Name</option><option>Khatauni Number</option></select></div>
+      <div class="form-group"><label class="form-label">Value</label><input class="form-control" id="jb-val" placeholder="Enter number or name"/></div>
+    </div>
+    <button class="btn btn-p" onclick="doJamabandi()">View Jamabandi Nakal</button>
+  </div>
+  <div id="jamabandi-res"></div>
+</section>
+
+<!-- KHATA -->
+<section id="s-khata" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Municipal</div>
+    <h1>Khata Certificate — Municipal Record</h1>
+    <p>BBMP / Municipal property account — required for property tax and building plan approval</p>
+  </div>
+  <div class="info-box war"><span class="ib-icon">⚠️</span><div><strong>A Khata vs B Khata:</strong> A Khata = BBMP-approved (eligible for loans/licenses). B Khata = unapproved layout (cannot get building license or bank loans). Always verify before purchasing!</div></div>
+  <div class="card">
+    <div class="card-title">View Khata / e-Khata</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Municipality</label><select class="form-control" id="kh-corp"><option>BBMP (Bengaluru)</option><option>MCGM (Mumbai)</option><option>GHMC (Hyderabad)</option><option>MCD (Delhi)</option><option>PMC (Pune)</option><option>KMC (Kolkata)</option></select></div>
+      <div class="form-group"><label class="form-label">Ward No.</label><input class="form-control" id="kh-ward" placeholder="e.g. 45"/></div>
+      <div class="form-group"><label class="form-label">Property ID / PID</label><input class="form-control" id="kh-pid" placeholder="e.g. PID-12345678"/></div>
+      <div class="form-group"><label class="form-label">Survey No. (optional)</label><input class="form-control" id="kh-s" placeholder="e.g. 88/3"/></div>
+    </div>
+    <button class="btn btn-p" onclick="doKhata()">View Khata</button>
+  </div>
+  <div id="khata-res"></div>
+</section>
+
+<!-- MUTATION -->
+<section id="s-mutation" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Mutation</div>
+    <h1>Mutation / Dakhil Kharij</h1>
+    <p>Update land records after sale, inheritance, gift, or partition</p>
+  </div>
+  <div class="info-box inf"><span class="ib-icon">ℹ️</span><div><strong>Important:</strong> Mutation does NOT prove ownership — the registered sale deed is primary. Without mutation, you are invisible to the government's revenue system.</div></div>
+  <div class="tabs-row" style="margin-bottom:16px">
+    <button class="tab-pill active" onclick="mutTab('t','track')">Track Mutation Status</button>
+    <button class="tab-pill" onclick="mutTab('a','track')">Apply for Mutation</button>
+  </div>
+  <div id="mut-track">
+    <div class="card">
+      <div class="card-title">Track Mutation (Dakhil Kharij) Status</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Mutation Number</label><input class="form-control" id="mut-no" placeholder="e.g. MUT-12345/BL"/></div>
+        <div class="form-group"><label class="form-label">OR Survey Number</label><input class="form-control" id="mut-sv" placeholder="e.g. 123/4"/></div>
+        <div class="form-group"><label class="form-label">District</label><select class="form-control" id="mut-d"><option value="">-- Select --</option></select></div>
+      </div>
+      <button class="btn btn-p" onclick="doMutation()">Check Status</button>
+    </div>
+    <div id="mutation-res"></div>
+  </div>
+  <div id="mut-apply" style="display:none">
+    <div class="card">
+      <div class="card-title">Apply for Mutation Online</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Applicant Name *</label><input class="form-control" id="ma-name" placeholder="Full name"/></div>
+        <div class="form-group"><label class="form-label">Phone *</label><input class="form-control" id="ma-phone" placeholder="10-digit mobile"/></div>
+        <div class="form-group"><label class="form-label">Survey Number *</label><input class="form-control" id="ma-sv" placeholder="e.g. 123/4"/></div>
+        <div class="form-group"><label class="form-label">District *</label><select class="form-control" id="ma-d"><option value="">-- Select --</option></select></div>
+        <div class="form-group"><label class="form-label">Mutation Type *</label><select class="form-control" id="ma-type"><option>Sale</option><option>Inheritance</option><option>Gift Deed</option><option>Partition</option><option>Court Decree</option><option>Exchange</option><option>Will</option></select></div>
+        <div class="form-group"><label class="form-label">Previous Owner *</label><input class="form-control" id="ma-prev" placeholder="Old owner name"/></div>
+        <div class="form-group"><label class="form-label">New Owner *</label><input class="form-control" id="ma-new" placeholder="New owner name"/></div>
+      </div>
+      <button class="btn btn-s" onclick="applyMut()">Submit Mutation Application (Rs.500 fee)</button>
+    </div>
+    <div id="mutapply-res"></div>
+  </div>
+</section>
+
+<!-- LPC -->
+<section id="s-lpc" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Bihar</div>
+    <h1>LPC — Land Possession Certificate</h1>
+    <p>Bihar Bhumi — Official certificate for bank loans and government schemes</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Get Land Possession Certificate (LPC)</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">District</label><select class="form-control" id="lpc-d"><option value="">-- Select --</option><option>Patna</option><option>Gaya</option><option>Muzaffarpur</option></select></div>
+      <div class="form-group"><label class="form-label">Anchol (Block)</label><select class="form-control" id="lpc-t"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Mauza (Village)</label><select class="form-control" id="lpc-v"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Khata/Survey No.</label><input class="form-control" id="lpc-s" placeholder="e.g. 456"/></div>
+      <div class="form-group"><label class="form-label">Purpose</label><select class="form-control" id="lpc-p"><option>Bank Loan</option><option>Property Purchase</option><option>Court Case</option><option>Government Scheme</option><option>Building Permission</option></select></div>
+    </div>
+    <button class="btn btn-p" onclick="doLPC()">Get LPC</button>
+  </div>
+  <div id="lpc-res"></div>
+</section>
+
+<!-- EC -->
+<section id="s-ec" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Encumbrance</div>
+    <h1>Encumbrance Certificate (EC)</h1>
+    <p>Verify if a property is free from mortgages, litigations, or financial liabilities</p>
+  </div>
+  <div class="info-box ok"><span class="ib-icon">✅</span><div>Banks mandate EC before loan sanction. A "Nil EC" means encumbrance-free. Shows all registered transactions for the period.</div></div>
+  <div class="card">
+    <div class="card-title">Search Encumbrance Certificate</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Survey/Plot No.</label><input class="form-control" id="ec-s" placeholder="e.g. 88/3"/></div>
+      <div class="form-group"><label class="form-label">Period (Years)</label><select class="form-control" id="ec-period"><option value="13">13 years (standard)</option><option value="30">30 years</option><option value="5">5 years</option><option value="1">1 year</option></select></div>
+      <div class="form-group"><label class="form-label">District</label><select class="form-control" id="ec-d"><option value="">-- Select --</option></select></div>
+    </div>
+    <button class="btn btn-p" onclick="doEC()">Search EC</button>
+  </div>
+  <div id="ec-res"></div>
+</section>
+
+<!-- ULPIN -->
+<section id="s-ulpin" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / ULPIN</div>
+    <h1>ULPIN / Bhu-Aadhar — Unique Land Parcel ID</h1>
+    <p>14-digit unique ID for every land parcel under DILRMP — rolled out in 29 states</p>
+  </div>
+  <div class="info-box inf"><span class="ib-icon">🆔</span><div>ULPIN (Bhu-Aadhar) is analogous to Aadhaar for land parcels. Andhra Pradesh first to achieve 100% coverage (60 million parcels). Bihar leads with 4.27 crore ULPINs assigned.</div></div>
+  <div class="card">
+    <div class="card-title">ULPIN Lookup</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">ULPIN Number (14 digits)</label><input class="form-control" id="ulp-no" placeholder="e.g. 29120345678901" maxlength="14"/></div>
+      <div class="form-group"><label class="form-label">OR Survey Number</label><input class="form-control" id="ulp-s" placeholder="e.g. 123/4A"/></div>
+      <div class="form-group"><label class="form-label">District</label><select class="form-control" id="ulp-d"><option value="">-- Select --</option></select></div>
+    </div>
+    <button class="btn btn-p" onclick="doULPIN()">Search ULPIN</button>
+  </div>
+  <div id="ulpin-res"></div>
+</section>
+
+<!-- BHU-NAKSHA -->
+<section id="s-naksha" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Bhu-Naksha</div>
+    <h1>Bhu-Naksha — Cadastral Map</h1>
+    <p>GIS-enabled land parcel boundary maps geo-referenced by DILRMP/NIC</p>
+  </div>
+  <div class="card">
+    <div class="card-title">View Cadastral Map</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">District</label><select class="form-control" id="bn-d"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Survey/Khasra No.</label><input class="form-control" id="bn-s" placeholder="e.g. 245/3"/></div>
+    </div>
+    <button class="btn btn-p" onclick="doNaksha()">View Map</button>
+    &nbsp;<button class="btn btn-o" onclick="window.open('map.html')">Open Full Interactive Map</button>
+  </div>
+  <div id="naksha-res"></div>
+</section>
+
+<!-- PARIMARJAN -->
+<section id="s-prm" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Correction</div>
+    <h1>Parimarjan — Land Record Correction</h1>
+    <p>Online correction application for name, area, survey number, or classification errors</p>
+  </div>
+  <div class="info-box war"><span class="ib-icon">⚠️</span><div>Gather all supporting documents before applying. A Revenue Inspector will verify your request within 7 days.</div></div>
+  <div class="card">
+    <div class="card-title">Apply for Land Record Correction</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Applicant Name *</label><input class="form-control" id="prm-name" placeholder="Full name"/></div>
+      <div class="form-group"><label class="form-label">Survey Number *</label><input class="form-control" id="prm-s" placeholder="e.g. 123/4"/></div>
+      <div class="form-group"><label class="form-label">District *</label><select class="form-control" id="prm-d"><option value="">-- Select --</option></select></div>
+      <div class="form-group"><label class="form-label">Correction Type *</label>
+        <select class="form-control" id="prm-type">
+          <option value="">-- Select --</option>
+          <option>Name Spelling Error</option><option>Area Discrepancy</option><option>Wrong Survey Number</option>
+          <option>Incorrect Land Classification</option><option>Missing Mutation Entry</option>
+          <option>Owner Name Update (Inheritance)</option><option>Boundary Correction</option><option>Other</option>
+        </select></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Detailed Remarks *</label>
+      <textarea class="form-control" id="prm-rem" rows="3" placeholder="Describe the error and the correct information..."></textarea>
+    </div>
+    <div style="margin-bottom:12px"><span class="chip">Required: Original land record + Aadhaar + Supporting evidence + Notarized affidavit</span></div>
+    <button class="btn btn-s" onclick="doPRM()">Submit Correction Request</button>
+  </div>
+  <div id="prm-res"></div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="s-dashboard" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Analytics</div>
+    <h1>Bhoomi Analytics Dashboard</h1>
+    <p>District-wise statistics, mutation trends, land type distribution</p>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi kb"><label>Total Parcels</label><div class="kpi-val" id="kpi-p">—</div><div class="kpi-sub">Across all districts</div></div>
+    <div class="kpi kg"><label>Total Area (Acres)</label><div class="kpi-val" id="kpi-a">—</div><div class="kpi-sub">Surveyed land</div></div>
+    <div class="kpi ko"><label>Total Value</label><div class="kpi-val" id="kpi-v">—</div><div class="kpi-sub">Market valuation</div></div>
+    <div class="kpi kp"><label>Total Mutations</label><div class="kpi-val" id="kpi-m">—</div><div class="kpi-sub">Ownership changes</div></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>Geographic Area by District</h3><div class="chart-wrap"><canvas id="ch-dist"></canvas></div></div>
+    <div class="chart-card"><h3>Types of Land Area</h3><div class="chart-wrap"><canvas id="ch-type"></canvas></div></div>
+    <div class="chart-card" style="grid-column:1/-1"><h3>Year-wise Number of Mutations for the State</h3><div class="chart-wrap" style="height:230px"><canvas id="ch-mut"></canvas></div></div>
+    <div class="chart-card"><h3>Mutation-wise Auto Approved Details</h3><div class="chart-wrap"><canvas id="ch-mtype"></canvas></div></div>
+    <div class="chart-card"><h3>Land Owners by Status</h3><div class="chart-wrap"><canvas id="ch-status"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">District-wise Summary</div>
+    <div style="overflow-x:auto">
+      <table class="portal-table" id="dist-table">
+        <thead><tr><th>District</th><th>State</th><th>Parcels</th><th>Area (Acres)</th><th>Total Value</th></tr></thead>
+        <tbody id="dist-tbody"><tr><td colspan="5" style="text-align:center;padding:20px"><div class="spinner"></div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- STATE PORTALS -->
+<section id="s-portals" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Reference</div>
+    <h1>State Land Record Portal Directory</h1>
+    <p>Official portals for all 12 major states — free to view, Rs.15-50 for certified copies</p>
+  </div>
+  <div class="info-box inf"><span class="ib-icon">ℹ️</span><div>All portals are official government websites. The certified copy with QR code is legally valid for banks, courts, and registration offices.</div></div>
+  <div style="overflow-x:auto;margin-bottom:24px">
+    <table class="portal-table">
+      <thead><tr><th>State</th><th>Portal Name</th><th>URL</th><th>Primary Record</th><th>Search By</th><th>Toll-Free</th></tr></thead>
+      <tbody>
+        <tr><td>Maharashtra</td><td>Mahabhumi</td><td><a href="https://bhulekh.mahabhumi.gov.in" target="_blank">bhulekh.mahabhumi.gov.in</a></td><td>7/12 Satbara, 8A</td><td>District, Taluka, Village, Survey No.</td><td>1800-233-0800</td></tr>
+        <tr><td>Karnataka</td><td>Bhoomi</td><td><a href="https://bhoomi.karnataka.gov.in" target="_blank">bhoomi.karnataka.gov.in</a></td><td>RTC / Pahani</td><td>District, Taluk, Hobli, Survey No.</td><td>1800-425-0886</td></tr>
+        <tr><td>Uttar Pradesh</td><td>UP Bhulekh</td><td><a href="https://upbhulekh.gov.in" target="_blank">upbhulekh.gov.in</a></td><td>Khatauni / Khasra</td><td>District, Tehsil, Village, Khasra No.</td><td>1800-180-5374</td></tr>
+        <tr><td>Bihar</td><td>Bihar Bhumi</td><td><a href="https://biharbhumi.bihar.gov.in" target="_blank">biharbhumi.bihar.gov.in</a></td><td>Jamabandi / RoR</td><td>District, Anchol, Mauza, Khata No.</td><td>18003456215</td></tr>
+        <tr><td>Rajasthan</td><td>Apna Khata</td><td><a href="https://apnakhata.rajasthan.gov.in" target="_blank">apnakhata.rajasthan.gov.in</a></td><td>Jamabandi / Nakal</td><td>District, Tehsil, Village, Khata No.</td><td>1800-180-6236</td></tr>
+        <tr><td>Madhya Pradesh</td><td>MP Bhulekh</td><td><a href="https://mpbhulekh.gov.in" target="_blank">mpbhulekh.gov.in</a></td><td>Khasra / B1 / Plot</td><td>District, Tehsil, Village, Khasra No.</td><td>1800-233-6881</td></tr>
+        <tr><td>Telangana</td><td>Bhu Bharathi</td><td><a href="https://bhubharati.telangana.gov.in" target="_blank">bhubharati.telangana.gov.in</a></td><td>RoR / Pahani</td><td>District, Mandal, Village, Bhudhaar</td><td>1800-599-4788</td></tr>
+        <tr><td>Andhra Pradesh</td><td>Meebhoomi</td><td><a href="https://meebhoomi.ap.gov.in" target="_blank">meebhoomi.ap.gov.in</a></td><td>Adangal / 1B</td><td>District, Mandal, Village, Survey</td><td>1902</td></tr>
+        <tr><td>Tamil Nadu</td><td>TN eServices</td><td><a href="https://eservices.tn.gov.in" target="_blank">eservices.tn.gov.in</a></td><td>Patta, Chitta, TSLR</td><td>Taluk, Village, Survey/Patta No.</td><td>1800-425-0545</td></tr>
+        <tr><td>Haryana</td><td>Jamabandi</td><td><a href="https://jamabandi.nic.in" target="_blank">jamabandi.nic.in</a></td><td>Jamabandi / Fard</td><td>District, Tehsil, Village, Owner Name</td><td>1800-180-2060</td></tr>
+        <tr><td>Odisha</td><td>Bhulekh Odisha</td><td><a href="https://bhulekh.ori.nic.in" target="_blank">bhulekh.ori.nic.in</a></td><td>RoR (Khata / Plot)</td><td>District, Tahasil, Village, Khata No.</td><td>1800-345-6770</td></tr>
+        <tr><td>Gujarat</td><td>AnyROR</td><td><a href="https://anyror.gujarat.gov.in" target="_blank">anyror.gujarat.gov.in</a></td><td>VF7 / VF8A (RoR)</td><td>District, Taluka, Village, Survey No.</td><td>1800-233-5500</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="group-heading"><h2>Bihar DLRS Services</h2><span class="group-badge">10 Links</span></div>
+  <div class="service-grid">
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon ib">🔄</div><h3>Online Mutation</h3><p>Dakhil Kharij</p></div>
+    <div class="service-card" onclick="window.open('https://biharbhumi.bihar.gov.in')"><div class="svc-icon ig">💰</div><h3>Online Bhu-Lagan</h3><p>Land revenue payment</p></div>
+    <div class="service-card" onclick="show('s-khatauni')"><div class="svc-icon io">📋</div><h3>Online Jamabandi</h3><p>RoR records</p></div>
+    <div class="service-card" onclick="show('s-prm')"><div class="svc-icon ip">✏️</div><h3>Parimarjan Plus</h3><p>Record correction</p></div>
+    <div class="service-card" onclick="show('s-dashboard')"><div class="svc-icon it">📊</div><h3>Bhu-Manchitra</h3><p>GIS land maps</p></div>
+    <div class="service-card" onclick="show('s-lpc')"><div class="svc-icon ib">📃</div><h3>Online LPC</h3><p>Land possession cert</p></div>
+    <div class="service-card" onclick="show('s-naksha')"><div class="svc-icon ig">🗺️</div><h3>Bhu-Naksha</h3><p>Cadastral maps</p></div>
+    <div class="service-card" onclick="window.open('https://biharbhumi.bihar.gov.in')"><div class="svc-icon io">📐</div><h3>E-Mapi</h3><p>Digital survey maps</p></div>
+    <div class="service-card" onclick="show('s-mutation')"><div class="svc-icon ip">📮</div><h3>File Objection</h3><p>Against mutation cases</p></div>
+    <div class="service-card" onclick="show('s-ec')"><div class="svc-icon ir">🔗</div><h3>Encumbrances Register</h3><p>Mortgages & liabilities</p></div>
+  </div>
+</section>
+
+<!-- RECORDS GUIDE -->
+<section id="s-guide" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / Guide</div>
+    <h1>Complete Land Records Guide</h1>
+    <p>All 8 record types, DILRMP programme, 5-step online process, state-wise info</p>
+  </div>
+  <div class="group-heading"><h2>8 Key Record Types Across India</h2></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-bottom:24px">
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--blue-l)">1. Khasra — Plot Level Record (UP, MP, RJ)</div><p style="font-size:12px;color:var(--t2)">Records survey number, area, soil type, crop, owner/cultivator. Each plot's unique "land ID" in the revenue system.</p></div>
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--green-l)">2. Khatauni — Land Holdings Register (UP)</div><p style="font-size:12px;color:var(--t2)">Lists all plots owned by one person in a village. Summary of total holdings. Updated every 5 years by Patwari.</p></div>
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--orange-l)">3. 7/12 Satbara Utara — Maharashtra</div><p style="font-size:12px;color:var(--t2)">Form 7 (ownership) + Form 12 (crop). Most widely referenced document. Essential for property transactions, bank loans, government schemes.</p></div>
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--purple-l)">4. RTC / Pahani — Karnataka (Bhoomi)</div><p style="font-size:12px;color:var(--t2)">Record of Rights, Tenancy and Crops. Shows owner, tenancy, land type, area, crop details. Maintained by Village Accountant.</p></div>
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--teal-l)">5. Patta / Chitta — Tamil Nadu</div><p style="font-size:12px;color:var(--t2)">Patta = primary ownership document. Chitta = land classification (wet/dry/house-site). Together they serve as the RoR for Tamil Nadu.</p></div>
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--red-l)">6. Adangal / 1B — AP / Telangana</div><p style="font-size:12px;color:var(--t2)">Crop cultivation, land area, irrigation source, farmer name. Linked with Pattadar Passbook and Bhudhaar. New Bhu Bharathi Act 2025.</p></div>
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--blue-l)">7. Jamabandi / Fard — Rajasthan, Haryana, Punjab</div><p style="font-size:12px;color:var(--t2)">Khewat (ownership share) + Khasra (plot) + Khatauni (account). Updated every 4 years by Patwari. Apna Khata portal.</p></div>
+    <div class="card" style="margin:0"><div class="card-title" style="color:var(--green-l)">8. Khata Certificate — Municipal Record</div><p style="font-size:12px;color:var(--t2)">Urban equivalent. Proves property is in BBMP/municipal records. Required for property tax, building plan approval, bank loans.</p></div>
+  </div>
+  <div class="group-heading"><h2>DILRMP — Digital India Land Records Programme</h2></div>
+  <div class="card">
+    <p style="font-size:13px;color:var(--t2);line-height:2;margin-bottom:14px">The <strong style="color:var(--t1)">DILRMP</strong> was launched in 2016 under 100% central funding (Rs.875 crore). As of December 2023, computerisation covers <strong style="color:var(--green-l)">95.09%</strong> of villages. Sub-Registrar integration exceeds <strong style="color:var(--green-l)">93%</strong>.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">
+      <div class="detail-item"><label>Budget</label><span>Rs.875 Crore (2021-26)</span></div>
+      <div class="detail-item"><label>Villages Covered</label><span>6,25,137 / 6,57,397</span></div>
+      <div class="detail-item"><label>SRO Integration</label><span>93%+ complete</span></div>
+      <div class="detail-item"><label>ULPIN Rollout</label><span>29 States/UTs</span></div>
+      <div class="detail-item"><label>Geo-referenced</label><span>3,26,776 villages</span></div>
+      <div class="detail-item"><label>Platinum States</label><span>15 States/UTs</span></div>
+    </div>
+  </div>
+  <div class="group-heading"><h2>5 Steps to Check Land Records Online</h2></div>
+  <div id="guide-steps"></div>
+</section>
+
+<!-- FAQ -->
+<section id="s-faq" class="ps" style="display:none">
+  <div class="section-header"><div class="breadcrumb"><a href="#">Home</a> / FAQ</div>
+    <h1>Frequently Asked Questions</h1></div>
+  <div id="faq-list"></div>
+</section>
+
+</main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="doc-modal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div><div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em" id="m-dtype">Document</div><h2 id="m-title">Loading...</h2></div>
+      <button class="modal-close" onclick="closeModal()">x</button>
+    </div>
+    <div class="modal-body" id="m-body"><div class="spinner" style="margin:40px auto"></div></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const API = window.location.protocol === 'file:' ? 'http://127.0.0.1:5001' : '';
+const CH={};
+const GEO={};
+
+function show(id){
+  document.querySelectorAll('.ps').forEach(s=>s.style.display='none');
+  document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el){el.style.display='block';}
+  if(id==='s-dashboard')loadDash();
+}
+
+document.querySelectorAll('.sidebar-link').forEach(btn=>{
+  btn.addEventListener('click',function(){document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));this.classList.add('active');});
+});
+
+function toast(msg,type='ok'){const el=document.createElement('div');el.className='toast-msg '+type;el.textContent=msg;document.getElementById('toast').appendChild(el);setTimeout(()=>el.remove(),4000);}
+function openModal(title,dtype,html){document.getElementById('m-title').textContent=title;document.getElementById('m-dtype').textContent=dtype;document.getElementById('m-body').innerHTML=html;document.getElementById('doc-modal').classList.add('open');}
+function closeModal(){document.getElementById('doc-modal').classList.remove('open');}
+document.getElementById('doc-modal').addEventListener('click',e=>{if(e.target.id==='doc-modal')closeModal();});
+
+function fmtINR(v){if(!v&&v!==0)return'—';const s=Math.round(v).toString();if(s.length<=3)return'Rs.'+s;const l=s.slice(-3),r=s.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g,',');return'Rs.'+r+','+l;}
+function fmtD(d){if(!d)return'—';const dt=new Date(d);if(isNaN(dt))return d;return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});}
+function sb(s){const m={clear:'bc',disputed:'bd',mortgaged:'bm'};return '<span class="badge '+(m[s]||'bc')+'">'+(s||'—')+'</span>';}
+
+function renderDoc(d,extra=''){
+  const fields=[['Survey No.',d.survey_number],['District',d.district],['Taluk',d.taluk||d.taluka||d.anchol],['Village',d.village],['Area (Acres)',d.area_acres],['Area (Ha)',d.area_hectares],['Land Type',d.land_type],['Land Use',d.land_use||d.land_class||d.land_nature],['Status',sb(d.status)],['Market Value',fmtINR(d.market_value)],['Govt Value',fmtINR(d.govt_value)],['Encumbrance',d.encumbrance||'—']].filter(([,v])=>v!==undefined&&v!==null&&v!=='—');
+  const grid=fields.map(([l,v])=>'<div class="detail-item"><label>'+l+'</label><span>'+v+'</span></div>').join('');
+  const qr=d.qr_code||d.bhoomi_ref||d.lpc_number||d.ec_number||d.ulpin||'—';
+  const issuer=d.issued_by||d.talathi_name||d.village_accountant||d.certified_by||'';
+  return '<div class="doc-stamp"><div class="doc-qr">📋</div><div class="doc-stamp-text"><h3>'+(d.document_type||'Land Record')+'</h3><p>Ref: '+qr+' | '+(d.issued_date||'—')+' | '+issuer+'</p></div></div><div class="detail-grid">'+grid+'</div>'+extra+'<div class="divider"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p" onclick="window.open(\"map.html?lat='+(d.latitude||0)+'&lng='+(d.longitude||0)+'\")">View on Map</button><button class="btn btn-o" onclick="window.print()">Download/Print</button><button class="btn btn-o" onclick="window.location=\'grievance.html\'">File Grievance</button></div>';
+}
+
+function showLoading(id){const el=document.getElementById(id);if(el)el.innerHTML='<div class="spinner" style="margin:30px auto"></div>';}
+function errHtml(msg){return '<div class="info-box war"><span class="ib-icon">Error</span><div>'+(msg||'Record not found')+'</div></div>';}
+
+async function doRTC(){
+  const s=document.getElementById('rtc-s')?.value.trim()||'';
+  const d=document.getElementById('rtc-d')?.value||'';
+  openModal('Loading RTC...','RTC Karnataka','<div class="spinner" style="margin:40px auto"></div>');
+  try{
+    const r=await(await fetch(API+'/api/services/rtc?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+    if(!r.success){closeModal();toast(r.error||'Error','err');return;}
+    const extra='<div class="divider"></div><div class="card-title">Crop Details</div><table class="table-sm"><thead><tr><th>Season</th><th>Crop</th><th>Area</th></tr></thead><tbody><tr><td>Kharif</td><td>'+r.crop_season_1?.crop+'</td><td>'+r.crop_season_1?.area+' Ac</td></tr><tr><td>Rabi</td><td>'+r.crop_season_2?.crop+'</td><td>'+r.crop_season_2?.area+' Ac</td></tr></tbody></table>'
+      +'<div class="divider"></div><div class="card-title">Mutation History</div><table class="table-sm"><thead><tr><th>Mut. No.</th><th>Date</th><th>Type</th><th>Previous</th><th>New Owner</th></tr></thead><tbody>'+(r.mutation_history||[]).map(m=>'<tr><td>'+m.mutation_no+'</td><td>'+fmtD(m.date)+'</td><td>'+m.type+'</td><td>'+m.from+'</td><td>'+m.to+'</td></tr>').join('')+'</tbody></table>'
+      +'<div class="divider"></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"><div class="detail-item"><label>Hobli</label><span>'+r.hobli+'</span></div><div class="detail-item"><label>Nature</label><span>'+r.nature_of_land+'</span></div><div class="detail-item"><label>i-RTC</label><span style="color:var(--green-l)">Enabled</span></div></div>';
+    openModal('RTC — '+r.survey_number,r.document_type,renderDoc(r,extra));
+  }catch(e){closeModal();toast('Connection error','err');}
+}
+
+async function doIRTC(){
+  const s=document.getElementById('rtc-s')?.value.trim()||'';
+  openModal('Getting i-RTC...','i-RTC','<div class="spinner" style="margin:40px auto"></div>');
+  try{
+    const r=await(await fetch(API+'/api/services/iRTC?survey='+encodeURIComponent(s))).json();
+    if(!r.success){closeModal();toast(r.error||'Error','err');return;}
+    openModal('i-RTC — '+r.survey_number,'i-RTC (Instant)','<div class="doc-stamp"><div class="doc-qr">⚡</div><div class="doc-stamp-text"><h3>i-RTC (Instant RTC)</h3><p>QR: '+r.qr_code+' | Valid: '+r.valid_minutes+' min | XML Verified</p></div></div><div class="detail-grid"><div class="detail-item"><label>Survey No.</label><span>'+r.survey_number+'</span></div><div class="detail-item"><label>District</label><span>'+r.district+'</span></div><div class="detail-item"><label>Owner Name</label><span>'+r.owner_name+'</span></div><div class="detail-item"><label>Area</label><span>'+r.area_acres+' Acres</span></div><div class="detail-item"><label>Status</label><span>'+sb(r.status)+'</span></div><div class="detail-item"><label>XML Verified</label><span style="color:var(--green-l)">Verified</span></div></div><div class="info-box ok"><span class="ib-icon">OK</span><div>Valid for '+r.valid_minutes+' minutes. QR: '+r.qr_code+'</div></div>');
+  }catch(e){closeModal();toast('Error','err');}
+}
+
+async function doSatbara(){
+  const s=document.getElementById('mh-s')?.value.trim()||'';
+  const d=document.getElementById('mh-d')?.value||'Pune';
+  showLoading('satbara-res');
+  try{
+    const r=await(await fetch(API+'/api/services/satbara?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+    if(!r.success){document.getElementById('satbara-res').innerHTML=errHtml(r.error);return;}
+    const extra='<div class="divider"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><div class="card-title">Form 7 — Rights</div><div class="detail-grid"><div class="detail-item"><label>Owner</label><span>'+r.owner_name+'</span></div><div class="detail-item"><label>Type</label><span>'+r.owner_type+'</span></div><div class="detail-item"><label>Khata No.</label><span>'+r.khata_number+'</span></div><div class="detail-item"><label>Irrigation</label><span>'+r.irrigation_type+'</span></div></div></div><div><div class="card-title">Form 12 — Crops</div><table class="table-sm"><thead><tr><th>Season</th><th>Crop</th><th>Area</th></tr></thead><tbody>'+(r.crop_details||[]).map(c=>'<tr><td>'+c.season+'</td><td>'+c.crop+'</td><td>'+c.area+' Ha</td></tr>').join('')+'</tbody></table></div></div>'
+      +(r.encumbrance_details?.mortgage?'<div class="info-box war"><span class="ib-icon">Warn</span><div>Mortgage exists. Bank: '+r.encumbrance_details.bank_name+'. Amount: '+fmtINR(r.encumbrance_details.loan_amount)+'</div></div>':'<div class="info-box ok"><span class="ib-icon">OK</span><div>No Encumbrance — Property is clear.</div></div>');
+    document.getElementById('satbara-res').innerHTML='<div class="card">'+renderDoc(r,extra)+'</div>';
+  }catch(e){document.getElementById('satbara-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doKhatauni(){
+  const s=document.getElementById('up-s')?.value.trim()||'';
+  const d=document.getElementById('up-d')?.value||'';
+  showLoading('khatauni-res');
+  try{
+    const r=await(await fetch(API+'/api/services/khatauni?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+    if(!r.success){document.getElementById('khatauni-res').innerHTML=errHtml(r.error||'Not found');return;}
+    document.getElementById('khatauni-res').innerHTML='<div class="card">'+renderDoc(r)+'</div>';
+  }catch(e){
+    try{
+      const r2=await(await fetch(API+'/api/services/khasra?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+      if(r2.success){document.getElementById('khatauni-res').innerHTML='<div class="card">'+renderDoc(r2)+'</div>';return;}
+    }catch(_){}
+    document.getElementById('khatauni-res').innerHTML=errHtml('Connection failed');
+  }
+}
+
+async function doAdangal(){
+  const s=document.getElementById('ap-s')?.value.trim()||'';
+  const d=document.getElementById('ap-d')?.value||'';
+  showLoading('adangal-res');
+  try{
+    const r=await(await fetch(API+'/api/services/adangal?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+    if(!r.success){document.getElementById('adangal-res').innerHTML=errHtml(r.error);return;}
+    const extra='<div class="divider"></div><div class="detail-grid"><div class="detail-item"><label>Pattadar</label><span>'+r.pattadar_name+'</span></div><div class="detail-item"><label>Passbook</label><span>'+r.pattadar_passbook_no+'</span></div><div class="detail-item"><label>Water Source</label><span>'+r.water_source+'</span></div><div class="detail-item"><label>Soil Type</label><span>'+r.soil_type+'</span></div><div class="detail-item"><label>Bhudhaar</label><span>'+r.bhudhaar_number+'</span></div><div class="detail-item"><label>Revenue</label><span>Rs.'+r.land_revenue+'</span></div></div>'
+      +'<div class="divider"></div><table class="table-sm"><thead><tr><th>Season</th><th>Crop</th><th>Area (Acres)</th></tr></thead><tbody>'+(r.crops||[]).map(c=>'<tr><td>'+c.season+'</td><td>'+c.crop+'</td><td>'+c.area_acres+'</td></tr>').join('')+'</tbody></table>';
+    document.getElementById('adangal-res').innerHTML='<div class="card">'+renderDoc(r,extra)+'</div>';
+  }catch(e){document.getElementById('adangal-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doJamabandi(){
+  const s=document.getElementById('jb-val')?.value.trim()||'';
+  const d=document.getElementById('jb-d')?.value||'';
+  showLoading('jamabandi-res');
+  try{
+    const r=await(await fetch(API+'/api/services/jamabandi?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+    if(!r.success){document.getElementById('jamabandi-res').innerHTML=errHtml(r.error);return;}
+    const extra='<div class="divider"></div><div class="detail-grid"><div class="detail-item"><label>Khewat No.</label><span>'+r.khewat_number+'</span></div><div class="detail-item"><label>Khasra No.</label><span>'+r.khasra_number+'</span></div><div class="detail-item"><label>Owner</label><span>'+r.owner_name+'</span></div><div class="detail-item"><label>Father</label><span>'+r.owner_father+'</span></div><div class="detail-item"><label>Share</label><span>'+r.share_fraction+'</span></div><div class="detail-item"><label>Tenure</label><span>'+r.tenure_type+'</span></div><div class="detail-item"><label>Land Class</label><span>'+r.land_class+'</span></div><div class="detail-item"><label>Patwari</label><span>'+r.patwari_name+'</span></div></div>'
+      +'<div class="divider"></div><table class="table-sm"><thead><tr><th>Intkal No.</th><th>Year</th><th>Reason</th><th>Status</th></tr></thead><tbody>'+(r.mutations||[]).map(m=>'<tr><td>'+m.intkal_no+'</td><td>'+m.year+'</td><td>'+m.reason+'</td><td><span class="badge bc">'+m.status+'</span></td></tr>').join('')+'</tbody></table>';
+    document.getElementById('jamabandi-res').innerHTML='<div class="card">'+renderDoc(r,extra)+'</div>';
+  }catch(e){document.getElementById('jamabandi-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doKhata(){
+  const s=document.getElementById('kh-s')?.value.trim()||'';
+  showLoading('khata-res');
+  try{
+    const r=await(await fetch(API+'/api/services/khata_cert?survey='+encodeURIComponent(s))).json();
+    if(!r.success){document.getElementById('khata-res').innerHTML=errHtml(r.error);return;}
+    const extra='<div class="divider"></div><div class="detail-grid"><div class="detail-item"><label>Khata No.</label><span>'+r.khata_number+'</span></div><div class="detail-item"><label>Property ID</label><span>'+r.property_id+'</span></div><div class="detail-item"><label>Ward</label><span>'+r.ward_name+'</span></div><div class="detail-item"><label>Corporation</label><span>'+r.corporation+'</span></div><div class="detail-item"><label>Built-up Area</label><span>'+r.built_up_area_sqft?.toLocaleString()+' sqft</span></div><div class="detail-item"><label>Property Tax/yr</label><span>'+fmtINR(r.property_tax_annual)+'</span></div></div>'
+      +'<div class="info-box '+(r.khata_type?.includes('A Khata')?'ok':'war')+'"><span class="ib-icon">'+(r.khata_type?.includes('A Khata')?'OK':'Warn')+'</span><div>'+r.khata_type+' — '+(r.khata_type?.includes('A Khata')?'BBMP-approved. Eligible for loans and licenses.':'Unapproved layout. Cannot get building license or bank loans.')+'</div></div>';
+    document.getElementById('khata-res').innerHTML='<div class="card">'+renderDoc(r,extra)+'</div>';
+  }catch(e){document.getElementById('khata-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doMutation(){
+  const mn=document.getElementById('mut-no')?.value.trim()||'';
+  const sv=document.getElementById('mut-sv')?.value.trim()||'';
+  showLoading('mutation-res');
+  try{
+    const r=await(await fetch(API+'/api/services/mutation_status?mutation_no='+encodeURIComponent(mn)+'&survey='+encodeURIComponent(sv))).json();
+    if(!r.success){document.getElementById('mutation-res').innerHTML=errHtml(r.error);return;}
+    const stepsHtml=(r.progress_steps||[]).map((s,i)=>{
+      const cls=s.done?'done':(i===(r.progress_steps.findIndex(x=>!x.done))?'current':'pending');
+      const ln=i<r.progress_steps.length-1?'<div class="step-line '+(s.done?'done':'')+'"></div>':'';
+      return '<div class="step-item"><div class="step-col"><div class="step-dot '+cls+'">'+(s.done?'v':(i+1))+'</div><div class="step-lbl">'+s.stage+'</div></div>'+ln+'</div>';
+    }).join('');
+    document.getElementById('mutation-res').innerHTML='<div class="card"><div class="card-title">Mutation Status — '+r.mutation_number+'</div><div class="stepper">'+stepsHtml+'</div><div class="detail-grid" style="margin-top:16px"><div class="detail-item"><label>Mutation No.</label><span>'+r.mutation_number+'</span></div><div class="detail-item"><label>Type</label><span>'+r.mutation_type+'</span></div><div class="detail-item"><label>Status</label><span class="badge '+(r.status==='Approved'?'bc':'bm')+'">'+r.status+'</span></div><div class="detail-item"><label>Previous Owner</label><span>'+r.previous_owner+'</span></div><div class="detail-item"><label>New Owner</label><span>'+r.new_owner+'</span></div><div class="detail-item"><label>Days Elapsed</label><span>'+r.days_elapsed+' days</span></div><div class="detail-item"><label>Objections</label><span>'+r.objections_filed+'</span></div><div class="detail-item"><label>Fee Paid</label><span>Rs.'+r.fee_paid+'</span></div></div>'+(r.patwari_remarks?'<div class="info-box inf"><span class="ib-icon">Note</span><div>Patwari: '+r.patwari_remarks+'</div></div>':'')+'</div>';
+  }catch(e){document.getElementById('mutation-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function applyMut(){
+  const body={applicant_name:document.getElementById('ma-name')?.value.trim(),applicant_phone:document.getElementById('ma-phone')?.value.trim(),survey_number:document.getElementById('ma-sv')?.value.trim(),district:document.getElementById('ma-d')?.value,mutation_type:document.getElementById('ma-type')?.value,previous_owner:document.getElementById('ma-prev')?.value.trim(),new_owner:document.getElementById('ma-new')?.value.trim()};
+  if(!body.applicant_name||!body.survey_number){toast('Fill all required fields','err');return;}
+  showLoading('mutapply-res');
+  try{
+    const r=await(await fetch(API+'/api/services/mutation_apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+    if(!r.success){document.getElementById('mutapply-res').innerHTML=errHtml(r.error);return;}
+    document.getElementById('mutapply-res').innerHTML='<div class="card" style="border-color:var(--green-l)"><div class="info-box ok"><span class="ib-icon">OK</span><div>Application submitted! Mutation Number: <strong style="color:var(--green-l);font-size:16px">'+r.mutation_number+'</strong></div></div><div class="detail-grid"><div class="detail-item"><label>Mutation No.</label><span style="color:var(--green-l)">'+r.mutation_number+'</span></div><div class="detail-item"><label>Date</label><span>'+r.application_date+'</span></div><div class="detail-item"><label>Expected</label><span>'+r.expected_completion+'</span></div><div class="detail-item"><label>Fee</label><span>Rs.'+r.fee+'</span></div></div><p style="font-size:12px;color:var(--t2)">'+r.next_step+'</p></div>';
+  }catch(e){document.getElementById('mutapply-res').innerHTML=errHtml('Connection failed');}
+}
+
+function mutTab(tab){
+  event.target.parentElement.querySelectorAll('.tab-pill').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('mut-track').style.display=tab==='t'?'block':'none';
+  document.getElementById('mut-apply').style.display=tab==='a'?'block':'none';
+}
+
+async function doLPC(){
+  const s=document.getElementById('lpc-s')?.value.trim()||'';
+  const d=document.getElementById('lpc-d')?.value||'';
+  showLoading('lpc-res');
+  try{
+    const r=await(await fetch(API+'/api/services/lpc?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+    if(!r.success){document.getElementById('lpc-res').innerHTML=errHtml(r.error);return;}
+    const extra='<div class="divider"></div><div class="detail-grid"><div class="detail-item"><label>LPC No.</label><span>'+r.lpc_number+'</span></div><div class="detail-item"><label>Owner</label><span>'+r.owner_name+'</span></div><div class="detail-item"><label>Possession</label><span>'+r.possession_type+'</span></div><div class="detail-item"><label>Land Revenue</label><span>Rs.'+r.land_revenue+'</span></div><div class="detail-item"><label>Valid Upto</label><span>'+r.valid_upto+'</span></div></div><div class="info-box ok"><span class="ib-icon">OK</span><div>LPC valid for 90 days. QR: '+r.qr_code+'</div></div>';
+    document.getElementById('lpc-res').innerHTML='<div class="card">'+renderDoc(r,extra)+'</div>';
+  }catch(e){document.getElementById('lpc-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doEC(){
+  const s=document.getElementById('ec-s')?.value.trim()||document.getElementById('mh-s')?.value.trim()||'';
+  const p=document.getElementById('ec-period')?.value||'13';
+  showLoading('ec-res');
+  try{
+    const r=await(await fetch(API+'/api/services/ec?survey='+encodeURIComponent(s)+'&period='+p)).json();
+    if(!r.success){document.getElementById('ec-res').innerHTML=errHtml(r.error);return;}
+    const extra='<div class="info-box '+(r.is_clear?'ok':'war')+'"><span class="ib-icon">'+(r.is_clear?'OK':'Warn')+'</span><div>'+r.status+' — Period: '+r.period+'. Transactions: '+r.total_transactions+'</div></div><div class="divider"></div><table class="table-sm"><thead><tr><th>Sl</th><th>Date</th><th>Nature</th><th>Parties</th><th>Deed No.</th><th>Amount</th></tr></thead><tbody>'+(r.transactions||[]).map(t=>'<tr><td>'+t.sl_no+'</td><td>'+fmtD(t.date)+'</td><td>'+t.nature+'</td><td>'+t.parties+'</td><td>'+t.deed_no+'</td><td>'+fmtINR(t.amount)+'</td></tr>').join('')+'</tbody></table>';
+    document.getElementById('ec-res').innerHTML='<div class="card">'+renderDoc(r,extra)+'</div>';
+  }catch(e){document.getElementById('ec-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doULPIN(){
+  const u=document.getElementById('ulp-no')?.value.trim()||'';
+  const s=document.getElementById('ulp-s')?.value.trim()||'';
+  showLoading('ulpin-res');
+  try{
+    const r=await(await fetch(API+'/api/services/ulpin?ulpin='+encodeURIComponent(u)+'&survey='+encodeURIComponent(s))).json();
+    if(!r.success){document.getElementById('ulpin-res').innerHTML=errHtml(r.error);return;}
+    document.getElementById('ulpin-res').innerHTML='<div class="card"><div class="doc-stamp"><div class="doc-qr">ID</div><div class="doc-stamp-text"><h3>ULPIN / Bhu-Aadhar</h3><p>14-digit: <strong style="font-size:16px;letter-spacing:2px;color:var(--blue-l)">'+r.ulpin+'</strong></p></div></div><div class="detail-grid"><div class="detail-item"><label>ULPIN</label><span style="color:var(--blue-l);font-size:15px">'+r.ulpin+'</span></div><div class="detail-item"><label>Survey No.</label><span>'+r.survey_number+'</span></div><div class="detail-item"><label>District</label><span>'+r.district+'</span></div><div class="detail-item"><label>State</label><span>'+r.state+'</span></div><div class="detail-item"><label>Area (Ha)</label><span>'+r.area_hectares+'</span></div><div class="detail-item"><label>Geo-Referenced</label><span style="color:var(--green-l)">Yes</span></div><div class="detail-item"><label>DILRMP Status</label><span>'+r.dilrmp_status+'</span></div><div class="detail-item"><label>Assigned Date</label><span>'+fmtD(r.assigned_date)+'</span></div></div><div class="info-box ok"><span class="ib-icon">OK</span><div>ULPIN is geo-referenced. Assigned by: '+r.assigned_by+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-p" onclick="window.open(\"'+r.cadastral_map+'\",\'_blank\')">View Bhu-Naksha</button><button class="btn btn-o" onclick="window.open(\"'+r.verification_url+'\",\'_blank\')">Verify ULPIN</button></div></div>';
+  }catch(e){document.getElementById('ulpin-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doNaksha(){
+  const s=document.getElementById('bn-s')?.value.trim()||document.getElementById('rtc-s')?.value.trim()||'';
+  const d=document.getElementById('bn-d')?.value||'';
+  showLoading('naksha-res');
+  try{
+    const r=await(await fetch(API+'/api/services/bhu_naksha?survey='+encodeURIComponent(s)+'&district='+encodeURIComponent(d))).json();
+    if(!r.success){document.getElementById('naksha-res').innerHTML=errHtml(r.error);return;}
+    document.getElementById('naksha-res').innerHTML='<div class="card"><div class="card-title">Bhu-Naksha — Survey: '+r.survey_number+'</div><div class="detail-grid"><div class="detail-item"><label>Map Sheet</label><span>'+r.map_sheet_no+'</span></div><div class="detail-item"><label>Scale</label><span>'+r.scale+'</span></div><div class="detail-item"><label>Geo-Referenced</label><span style="color:var(--green-l)">Yes</span></div><div class="detail-item"><label>Area (Acres)</label><span>'+r.area_acres+'</span></div><div class="detail-item"><label>Perimeter</label><span>'+r.perimeter_m+' m</span></div></div><div class="divider"></div><table class="table-sm"><thead><tr><th>Direction</th><th>Survey No.</th><th>Boundary</th></tr></thead><tbody>'+(r.adjacent_plots||[]).map(p=>'<tr><td>'+p.direction+'</td><td>'+p.survey_no+'</td><td>'+p.owner+'</td></tr>').join('')+'</tbody></table><div class="divider"></div><div style="display:flex;gap:8px"><button class="btn btn-p" onclick="window.open(\"'+r.google_maps_url+'\",\'_blank\')">Open in Google Maps</button><button class="btn btn-o" onclick="window.open(\"map.html?lat='+r.latitude+'&lng='+r.longitude+'\")">App Map</button></div></div>';
+  }catch(e){document.getElementById('naksha-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function doPRM(){
+  const body={applicant_name:document.getElementById('prm-name')?.value.trim(),survey_number:document.getElementById('prm-s')?.value.trim(),district:document.getElementById('prm-d')?.value,correction_type:document.getElementById('prm-type')?.value,remarks:document.getElementById('prm-rem')?.value.trim()};
+  if(!body.applicant_name||!body.survey_number||!body.correction_type){toast('Fill all required fields','err');return;}
+  showLoading('prm-res');
+  try{
+    const r=await(await fetch(API+'/api/services/parimarjan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+    if(!r.success){document.getElementById('prm-res').innerHTML=errHtml(r.error);return;}
+    document.getElementById('prm-res').innerHTML='<div class="card" style="border-color:var(--green-l)"><div class="info-box ok"><span class="ib-icon">OK</span><div>Submitted! Application No: <strong style="color:var(--green-l)">'+r.application_no+'</strong></div></div><div class="detail-grid"><div class="detail-item"><label>App No.</label><span style="color:var(--green-l)">'+r.application_no+'</span></div><div class="detail-item"><label>Correction Type</label><span>'+r.correction_type+'</span></div><div class="detail-item"><label>Expected Days</label><span>'+r.expected_days+'</span></div><div class="detail-item"><label>Authority</label><span>'+r.authority+'</span></div></div><p style="font-size:12px;color:var(--t2)">'+r.next_step+'</p></div>';
+  }catch(e){document.getElementById('prm-res').innerHTML=errHtml('Connection failed');}
+}
+
+async function loadDash(){
+  try{
+    const d=await(await fetch(API+'/api/services/bhoomi_analytics')).json();
+    if(!d.success)return;
+    const s=d.summary;
+    document.getElementById('kpi-p').textContent=s.total_parcels?.toLocaleString('en-IN');
+    document.getElementById('kpi-a').textContent=Math.round(s.total_area_acres)?.toLocaleString('en-IN');
+    document.getElementById('kpi-v').textContent=fmtINR(s.total_value);
+    document.getElementById('kpi-m').textContent=s.total_mutations?.toLocaleString('en-IN');
+    mkC('ch-dist','bar',d.by_district.map(x=>x.district),d.by_district.map(x=>x.area),'Area',['#3b82f6']);
+    mkC('ch-type','doughnut',d.by_type.map(x=>x.type),d.by_type.map(x=>x.count),'Parcels',['#3b82f6','#22c55e','#8b5cf6','#f59e0b','#ef4444']);
+    mkC('ch-mut','line',d.mutation_trends.map(x=>x.year.toString()),d.mutation_trends.map(x=>x.count),'Mutations',['#3b82f6']);
+    mkC('ch-mtype','pie',d.mutation_types.map(x=>x.type),d.mutation_types.map(x=>x.count),'Count',['#3b82f6','#22c55e','#8b5cf6','#f59e0b','#ef4444','#22d3ee','#a78bfa']);
+    mkC('ch-status','bar',d.by_status.map(x=>x.status),d.by_status.map(x=>x.count),'Parcels',['#22c55e','#ef4444','#f59e0b','#3b82f6']);
+    document.getElementById('dist-tbody').innerHTML=d.by_district.map(dist=>'<tr><td><strong>'+dist.district+'</strong></td><td>'+(GEO[dist.district]?.state||'India')+'</td><td>'+dist.count?.toLocaleString('en-IN')+'</td><td>'+dist.area?.toLocaleString('en-IN')+'</td><td>'+fmtINR(dist.value)+'</td></tr>').join('');
+  }catch(e){console.error(e);}
+}
+
+function mkC(id,type,labels,data,label,colors){
+  if(CH[id])CH[id].destroy();
+  const ctx=document.getElementById(id)?.getContext('2d');
+  if(!ctx)return;
+  CH[id]=new Chart(ctx,{type,data:{labels,datasets:[{label,data,backgroundColor:type==='line'?'rgba(59,130,246,0.15)':colors,borderColor:type==='line'?'#3b82f6':colors,borderWidth:type==='line'?2:1,fill:type==='line',tension:0.4,pointRadius:type==='line'?3:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},scales:(type!=='pie'&&type!=='doughnut')?{x:{ticks:{color:'#64748b',maxRotation:45,font:{size:10}}},y:{ticks:{color:'#64748b',font:{size:10}}}}:{}}});
+}
+
+async function loadGeoData(){
+  try{
+    const d=await(await fetch(API+'/api/geography')).json();
+    Object.assign(GEO,d);
+    const all=Object.keys(d).sort();
+    ['rtc-d','ec-d','ulp-d','mut-d','ma-d','prm-d','bn-d'].forEach(id=>{
+      const sel=document.getElementById(id);
+      if(!sel)return;
+      all.forEach(dist=>{sel.innerHTML+='<option value="'+dist+'">'+dist+'</option>';});
+    });
+  }catch(e){}
+}
+
+const STEPS=[['Navigate to State Portal','Open the official state land records portal. Use URLs in the directory or search "[state] land records" on dilrmp.gov.in. Avoid third-party sites — certified copies must come from official portals.'],['Select Location Hierarchy','District → Tehsil/Taluka/Mandal → Village. Some states have extra levels (Hobli in Karnataka, Anchol in Bihar). Village selection is mandatory.'],['Enter Survey or Account Number','Most reliable: Survey/Khasra number — uniquely identifies one parcel. Alternatives: Owner name, Khata number, Aadhaar-linked search (some states).'],['View and Verify the RoR','Verify: Owner name & father, total area, land classification (irrigated/dry), encumbrances, date of last mutation. Cross-check with sale deed.'],['Download Certified Copy','Rs.15–30 for digitally signed copy. Certified copy with QR code is legally valid for banks, courts, registration. Unsigned screenshot is NOT accepted.']];
+
+document.getElementById('guide-steps').innerHTML=STEPS.map(([t,d],i)=>'<div class="card" style="margin-bottom:10px;display:flex;gap:16px"><div style="width:36px;height:36px;border-radius:50%;background:var(--'+(i<4?'blue':'green')+');display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;color:#fff">'+(i+1)+'</div><div><div style="font-weight:700;margin-bottom:4px">'+t+'</div><div style="font-size:12px;color:var(--t2)">'+d+'</div></div></div>').join('');
+
+const FAQS=[['Is checking land records online free?','Yes, most states offer free viewing. A fee of Rs.15-50 applies for certified/digitally signed copies. The certified copy with QR code is legally valid.'],['What is the difference between Bhulekh and Bhu-Naksha?','Bhulekh shows textual records (owner name, area, plot number). Bhu-Naksha shows the map (boundaries, shape, location). Both are complementary.'],['Is a land record (RoR) the same as a registered sale deed?','No. The registered sale deed is the primary title document. The RoR is a revenue document updated through mutation after registration.'],['What is ULPIN / Bhu-Aadhar?','A 14-digit unique ID for every land parcel — like Aadhaar for land. Rolled out in 29 states under DILRMP. Andhra Pradesh achieved 100% coverage (60 million parcels).'],['What is the difference between A Khata and B Khata?','A Khata = BBMP-approved, eligible for loans/licenses. B Khata = unapproved layout, cannot get building license or bank loans without regularization.'],['What is Mutation / Dakhil Kharij?','Updating land records with new owner name after sale, inheritance, or gift. Mutation does NOT prove ownership (registered deed does), but without mutation you are invisible in revenue records.'],['Can NRIs check land records online?','Yes — all state portals are globally accessible. You only need the property survey/plot number and the state portal URL.'],['How long does mutation take?','15-60 days depending on state. Online applications are faster. Objection period is 15-30 days.'],['Are Bhu-Naksha (land maps) available online?','Yes — for many states through Bhunaksha GIS portals. Geo-referencing covers 49% of villages as of 2023 under DILRMP.'],['What is DILRMP?','Digital India Land Records Modernisation Programme. Launched 2016 with Rs.875 crore central funding. Computerised 95.09% of villages, integrated 93%+ Sub-Registrar Offices.'],['What is Pattadar Passbook?','Used in AP and Telangana, links land owner to land record with Aadhaar. Required for crop loans and government schemes.'],['What if my data online is wrong?','File a Parimarjan (correction) application at Tehsil/Revenue office with supporting documents. Some states allow online correction requests.']];
+
+document.getElementById('faq-list').innerHTML=FAQS.map((f,i)=>'<div class="faq-item"><div class="faq-q" onclick="tFaq('+i+')"><span>'+f[0]+'</span><span id="fa-arr-'+i+'">v</span></div><div class="faq-a" id="fa-a-'+i+'">'+f[1]+'</div></div>').join('');
+
+function tFaq(i){const a=document.getElementById('fa-a-'+i);const ar=document.getElementById('fa-arr-'+i);a.classList.toggle('open');ar.textContent=a.classList.contains('open')?'^':'v';}
+
+loadGeoData();
+</script>
+</body>
+</html>
