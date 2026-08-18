@@ -120,7 +120,7 @@ def load_from_csv(conn):
     conn.commit()
 
 # ─────────────────────────────────────────────────────────────
-#  EXPANDED CITY & DISTRICT DATA — All States / Major Regions
+#  EXPANDED CITY & DISTRICT DATA — All States 
 # ─────────────────────────────────────────────────────────────
 CITIES = {
     "Bengaluru Urban": {
