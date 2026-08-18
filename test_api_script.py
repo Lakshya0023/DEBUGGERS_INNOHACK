@@ -1,4 +1,4 @@
-import urllib.request
+# Temporary script placeholder
 import json
 
 try:

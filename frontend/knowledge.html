@@ -621,7 +621,7 @@ textarea.form-control{resize:vertical;min-height:80px}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const API='http://localhost:5000';
+const API = window.location.protocol === 'file:' ? 'http://127.0.0.1:5001' : '';
 const CH={};
 const GEO={};
 

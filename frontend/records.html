@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/states_districts.js"></script>
     <style>
         /* Base Styles and layout adjustments for specific page needs */
         body {
@@ -540,24 +541,12 @@
                 <div class="filter-group">
                     <input type="text" id="searchInput" class="search-bar" placeholder="Search Survey No, Owner, Village...">
                     
+                    <select id="stateFilter" class="filter-select">
+                        <option value="">All States (Pan India)</option>
+                    </select>
+
                     <select id="districtFilter" class="filter-select">
                         <option value="">All Districts</option>
-                        <option value="Bengaluru Urban">Bengaluru Urban</option>
-                        <option value="Bengaluru Rural">Bengaluru Rural</option>
-                        <option value="Delhi">Delhi</option>
-                        <option value="North Delhi">North Delhi</option>
-                        <option value="South Delhi">South Delhi</option>
-                        <option value="East Delhi">East Delhi</option>
-                        <option value="West Delhi">West Delhi</option>
-                        <option value="Chennai">Chennai</option>
-                        <option value="Mumbai">Mumbai</option>
-                        <option value="Mumbai Suburban">Mumbai Suburban</option>
-                        <option value="Vellore">Vellore</option>
-                        <option value="Hyderabad">Hyderabad</option>
-                        <option value="Pune">Pune</option>
-                        <option value="Ahmedabad">Ahmedabad</option>
-                        <option value="Kolkata">Kolkata</option>
-                        <option value="Jaipur">Jaipur</option>
                     </select>
 
                     <select id="typeFilter" class="filter-select">
@@ -850,7 +839,7 @@
         let currentParcelId = null;
 
         // Base URL for API calls (handles file:// opening)
-        const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+        const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5001' : '';
 
         // Formatter for Indian Rupees
         const inrFormat = new Intl.NumberFormat('en-IN', {
@@ -871,6 +860,31 @@
                     }
                 } catch(e) {}
             }
+
+            // Setup State -> District cascade
+            const stateFilter = document.getElementById('stateFilter');
+            const districtFilter = document.getElementById('districtFilter');
+            setupStateDistrictCascade(stateFilter, districtFilter, () => fetchRecords(1), true);
+
+            // Handle URL params
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('state')) {
+                stateFilter.value = urlParams.get('state');
+                populateDistrictDropdown(districtFilter, urlParams.get('state'), 'All Districts in ' + urlParams.get('state'));
+            }
+            if (urlParams.get('district')) {
+                const d = urlParams.get('district');
+                const st = getStateForDistrict(d);
+                if (st && !stateFilter.value) {
+                    stateFilter.value = st;
+                    populateDistrictDropdown(districtFilter, st, 'All Districts in ' + st);
+                }
+                districtFilter.value = d;
+            }
+            if (urlParams.get('search')) {
+                document.getElementById('searchInput').value = urlParams.get('search');
+            }
+
             fetchRecords();
         });
 
@@ -878,6 +892,7 @@
         async function fetchRecords(page = 1) {
             currentPage = page;
             const search = document.getElementById('searchInput').value;
+            const state = document.getElementById('stateFilter') ? document.getElementById('stateFilter').value : '';
             const district = document.getElementById('districtFilter').value;
             const landType = document.getElementById('typeFilter').value;
             const status = document.getElementById('statusFilter').value;
@@ -888,6 +903,7 @@
             try {
                 const queryParams = new URLSearchParams({
                     search: search,
+                    state: state,
                     district: district,
                     land_type: landType,
                     status: status,
@@ -912,7 +928,6 @@
 
         // Event Listeners for Filters
         document.getElementById('searchInput').addEventListener('input', debounce(() => fetchRecords(1), 300));
-        document.getElementById('districtFilter').addEventListener('change', () => fetchRecords(1));
         document.getElementById('typeFilter').addEventListener('change', () => fetchRecords(1));
         document.getElementById('statusFilter').addEventListener('change', () => fetchRecords(1));
 

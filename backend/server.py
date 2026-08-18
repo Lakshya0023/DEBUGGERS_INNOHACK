@@ -281,9 +281,20 @@ def compute_ml_price_regression(parcel, price_history=None, horizon_years=10, gr
     }
 
 
+# Load all Indian States and Districts dictionary
+STATES_DISTRICTS_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'states_districts.json')
+STATES_DISTRICTS = {}
+if os.path.exists(STATES_DISTRICTS_FILE):
+    try:
+        with open(STATES_DISTRICTS_FILE, 'r', encoding='utf-8') as _f:
+            STATES_DISTRICTS = json.load(_f)
+    except Exception as _e:
+        print("Failed to load states_districts.json:", _e)
+
 @app.route('/api/lands', methods=['GET'])
 def get_lands():
     search = request.args.get('search', '').strip()
+    state = request.args.get('state', '').strip()
     district = request.args.get('district', '').strip()
     land_type = request.args.get('land_type', '').strip()
     status = request.args.get('status', '').strip()
@@ -294,7 +305,7 @@ def get_lands():
         page = 1
         
     try:
-        per_page = min(100, max(1, int(request.args.get('per_page', 20))))
+        per_page = min(1000, max(1, int(request.args.get('per_page', 20))))
     except (ValueError, TypeError):
         per_page = 20
         
@@ -315,6 +326,13 @@ def get_lands():
     if district:
         query += " AND lp.district = ?"
         params.append(district)
+    elif state:
+        state_districts = STATES_DISTRICTS.get(state, [])
+        if state_districts:
+            ph = ','.join(['?'] * len(state_districts))
+            query += f" AND (lp.district IN ({ph}) OR lp.district LIKE ?)"
+            params.extend(state_districts)
+            params.append(f'%{state}%')
     if land_type:
         query += " AND lp.land_type = ?"
         params.append(land_type)
@@ -333,6 +351,7 @@ def get_lands():
         'pages': math.ceil(max(total, 1) / per_page),
         'data': rows_to_list(parcels)
     })
+
 
 
 @app.route('/api/ml/predict-price', methods=['GET'])
@@ -405,21 +424,24 @@ def get_land_near():
     db = get_db()
     parcels = db.execute("""
         SELECT lp.*, u.name as owner_name, u.phone as owner_phone, u.email as owner_email,
-               ABS(lp.latitude - ?) + ABS(lp.longitude - ?) as distance
+               ((lp.latitude - ?) * (lp.latitude - ?) + (lp.longitude - ?) * (lp.longitude - ?)) as dist_sq
         FROM land_parcels lp
         LEFT JOIN users u ON lp.current_owner_id = u.id
-        ORDER BY distance ASC LIMIT 1
+        WHERE lp.latitude IS NOT NULL AND lp.longitude IS NOT NULL
+        ORDER BY dist_sq ASC LIMIT 1
     """, (lat, lng)).fetchone()
     db.close()
 
     if not parcels:
-        return jsonify({'error': 'No parcel found'}), 404
+        return jsonify({'found': False, 'message': 'No land parcel found in database'}), 404
 
     result = dict(parcels)
-    if result['distance'] > 0.05:
-        return jsonify({'found': False, 'message': 'No land parcel registered at this location', 'distance': result['distance']})
+    # 0.09 squared is ~0.008 (approx 10km radius)
+    if result.get('dist_sq', 999) > 0.04:
+        return jsonify({'found': False, 'message': 'No land parcel registered near this location', 'parcel': None})
 
     return jsonify({'found': True, 'parcel': result})
+
 
 
 @app.route('/api/lands/<parcel_id>', methods=['GET'])
@@ -475,10 +497,27 @@ def get_land_detail(parcel_id):
 @app.route('/api/lands', methods=['POST'])
 @require_admin
 def create_land():
-    data = request.json or {}
-    required = ['survey_number', 'district', 'taluk', 'village', 'area_acres', 'land_type', 'land_use', 'latitude', 'longitude', 'market_value']
+    raw_data = request.json or {}
+    data = {
+        'survey_number': raw_data.get('survey_number') or raw_data.get('surveyNumber'),
+        'state': raw_data.get('state'),
+        'district': raw_data.get('district'),
+        'taluk': raw_data.get('taluk') or 'Default Taluk',
+        'village': raw_data.get('village') or 'Default Village',
+        'area_acres': raw_data.get('area_acres') or raw_data.get('areaAcres'),
+        'land_type': raw_data.get('land_type') or raw_data.get('landType', 'Residential'),
+        'land_use': raw_data.get('land_use') or raw_data.get('landUse', 'General'),
+        'latitude': raw_data.get('latitude'),
+        'longitude': raw_data.get('longitude'),
+        'market_value': raw_data.get('market_value') or raw_data.get('marketValue'),
+        'status': raw_data.get('status', 'clear'),
+        'encumbrance': raw_data.get('encumbrance', 'None'),
+        'owner_name': raw_data.get('owner_name') or raw_data.get('ownerName', 'Registered Landholder')
+    }
+    
+    required = ['survey_number', 'district', 'area_acres', 'land_type', 'latitude', 'longitude', 'market_value']
     for f in required:
-        if f not in data:
+        if not data.get(f):
             return jsonify({'error': f'{f} is required'}), 400
 
     db = get_db()
@@ -569,8 +608,23 @@ def update_land(parcel_id):
 # ─────────────────────────────────────────────
 # LOCATIONS & UTILITIES ROUTES
 # ─────────────────────────────────────────────
+@app.route('/api/locations/states')
+def get_states():
+    if STATES_DISTRICTS:
+        return jsonify(sorted(list(STATES_DISTRICTS.keys())))
+    rows = get_db().execute("SELECT DISTINCT state FROM locations WHERE state IS NOT NULL ORDER BY state").fetchall()
+    return jsonify([r['state'] for r in rows])
+
 @app.route('/api/locations/districts')
 def districts():
+    state = request.args.get('state')
+    if state and state in STATES_DISTRICTS:
+        return jsonify(sorted(STATES_DISTRICTS[state]))
+    if STATES_DISTRICTS:
+        all_d = set()
+        for d_list in STATES_DISTRICTS.values():
+            all_d.update(d_list)
+        return jsonify(sorted(list(all_d)))
     rows = get_db().execute("SELECT DISTINCT district FROM locations ORDER BY district").fetchall()
     return jsonify([r['district'] for r in rows])
 
@@ -591,6 +645,7 @@ def villages():
         (district, taluk)
     ).fetchall()
     return jsonify([r['village'] for r in rows])
+
 
 def resolve_maps_link(short_url: str):
     headers = {'User-Agent': 'Mozilla/5.0'}
@@ -890,14 +945,49 @@ def analytics_summary():
 
 @app.route('/api/lands/all_markers', methods=['GET'])
 def all_markers():
-    """Lightweight endpoint for map markers"""
+    """Lightweight endpoint for map markers with optional filtering"""
+    state = request.args.get('state', '').strip()
+    district = request.args.get('district', '').strip()
+    land_type = request.args.get('land_type', '').strip()
+    status = request.args.get('status', '').strip()
+    search = request.args.get('search', '').strip()
+    
     db = get_db()
-    parcels = db.execute("""
-        SELECT id, survey_number, latitude, longitude, land_type, status, market_value, village
-        FROM land_parcels
-    """).fetchall()
+    query = """
+        SELECT lp.id, lp.survey_number, lp.latitude, lp.longitude, lp.land_type, 
+               lp.status, lp.market_value, lp.village, lp.district, lp.area_acres,
+               u.name as owner_name
+        FROM land_parcels lp
+        LEFT JOIN users u ON lp.current_owner_id = u.id
+        WHERE lp.latitude IS NOT NULL AND lp.longitude IS NOT NULL
+    """
+    params = []
+    if search:
+        query += " AND (lp.survey_number LIKE ? OR u.name LIKE ? OR lp.village LIKE ? OR lp.district LIKE ?)"
+        params += [f'%{search}%'] * 4
+    if district:
+        query += " AND lp.district = ?"
+        params.append(district)
+    elif state:
+        state_districts = STATES_DISTRICTS.get(state, [])
+        if state_districts:
+            ph = ','.join(['?'] * len(state_districts))
+            query += f" AND (lp.district IN ({ph}) OR lp.district LIKE ?)"
+            params.extend(state_districts)
+            params.append(f'%{state}%')
+    if land_type:
+        query += " AND lp.land_type = ?"
+        params.append(land_type)
+    if status:
+        query += " AND lp.status = ?"
+        params.append(status)
+
+    parcels = db.execute(query, params).fetchall()
     db.close()
-    return jsonify({'markers': rows_to_list(parcels)})
+    data = rows_to_list(parcels)
+    return jsonify({'markers': data, 'data': data, 'total': len(data)})
+
+
 
 # ─────────────────────────────────────────────
 # STATIC FILES
