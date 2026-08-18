@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Register - BhoomiSeva</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .auth-page {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .top-bar {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--text-light);
+        }
+
+        .auth-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            z-index: 10;
+        }
+
+        .auth-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 480px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #cbd5e1;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2em;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-primary:disabled {
+            background-color: #1e3a8a;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 0.375rem;
+            display: none;
+        }
+
+        /* Demo credentials box */
+        .demo-credentials {
+            margin-top: 2rem;
+            padding: 1.25rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #cbd5e1;
+        }
+
+        .demo-credentials h4 {
+            margin: 0 0 0.75rem 0;
+            color: #f8fafc;
+            font-size: 1rem;
+        }
+
+        .demo-credentials ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .demo-credentials li {
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-credentials code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .demo-credentials code:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Toast notifications */
+        #toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: #1e293b;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease-out forwards;
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Background effects */
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 40%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .hero-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="auth-page">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+
+    <header class="top-bar">
+        <a href="index.html" class="logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5Z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            BhoomiSeva
+        </a>
+        <a href="index.html" class="back-link">&larr; Back to Home</a>
+    </header>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('login')" type="button">Login</button>
+                <button class="tab-btn" onclick="switchTab('register')" type="button">Register</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-panel" class="tab-panel active">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">Email Address</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="name@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="login-password">Password</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="login-role">Login As</label>
+                        <select id="login-role" class="form-control">
+                            <option value="citizen">Citizen</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="login-btn">
+                        <span class="btn-text">Sign In</span>
+                        <div class="spinner" style="display: none;"></div>
+                    </button>
+                </form>
+
+                <div class="demo-credentials">
+                    <h4>Demo Credentials</h4>
+                    <ul>
+                        <li><strong>Admin:</strong> <code onclick="fillDemo('admin@landrecords.gov.in', 'admin123', 'admin')" title="Click to autofill">admin@landrecords.gov.in</code> / <code>admin123</code></li>
+                        <li><strong>Citizen:</strong> <code onclick="fillDemo('ramesh@email.com', 'citizen123', 'citizen')" title="Click to autofill">ramesh@email.com</code> / <code>citizen123</code></li>
+                    </ul>
+                    <small style="color: var(--text-muted);">Click on an email address to autofill the form.</small>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-panel" class="tab-panel">
+                <form id="register-form">
+                    <div class="form-group">
+                        <label class="form-label" for="reg-name">Full Name</label>
+                        <input type="text" id="reg-name" class="form-control" placeholder="Ramesh Kumar" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-email">Email Address</label>
+                        <input type="email" id="reg-email" class="form-control" placeholder="name@example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-phone">Phone Number</label>
+                        <input type="tel" id="reg-phone" class="form-control" placeholder="9876543210" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-aadhaar">Aadhaar Number <span style="color: var(--text-muted); font-weight: normal;">(Optional)</span></label>
+                        <input type="text" id="reg-aadhaar" class="form-control" placeholder="XXXX-XXXX-XXXX">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-password">Password</label>
+                        <input type="password" id="reg-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reg-confirm-password">Confirm Password</label>
+                        <input type="password" id="reg-confirm-password" class="form-control" placeholder="••••••••" required>
+                        <div class="error-message" id="reg-confirm-error">Passwords do not match</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="register-btn">
+                        <span class="btn-text">Create Account</span>
+                        <div class="spinner" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            
+            if (tabId === 'login') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('login-panel').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('register-panel').classList.add('active');
+            }
+        }
+
+        // Demo Credentials Autofill
+        function fillDemo(email, password, role) {
+            document.getElementById('login-email').value = email;
+            document.getElementById('login-password').value = password;
+            document.getElementById('login-role').value = role;
+            showToast('Credentials filled. Click Sign In to continue.', 'success');
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = message;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Set Loading State
+        function setLoading(btnId, isLoading) {
+            const btn = document.getElementById(btnId);
+            const text = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.spinner');
+            
+            btn.disabled = isLoading;
+            if (isLoading) {
+                text.style.display = 'none';
+                spinner.style.display = 'block';
+            } else {
+                text.style.display = 'block';
+                spinner.style.display = 'none';
+            }
+        }
+
+        // Login Form Submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const role = document.getElementById('login-role').value;
+            
+            setLoading('login-btn', true);
+            
+            try {
+                // Try real API first
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('bhsToken', data.token);
+                    localStorage.setItem('bhsUser', JSON.stringify(data.user));
+                    
+                    showToast('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = data.user.role === 'admin' ? 'admin.html' : 'records.html';
+                    }, 1000);
+                } else {
+                    showToast(data.message || 'Login failed', 'error');
+                }
+            } catch (err) {
+                // Fallback to Demo Login if API is unreachable
+                console.log("API not reachable, attempting demo login fallback...");
+                if (email === 'admin@landrecords.gov.in' && password === 'admin123') {
+                    localStorage.setItem('bhsToken', 'demo-admin-token');
+                    localStorage.setItem('bhsUser', JSON.stringify({ id: 'a1', name: 'System Admin', email, role: 'admin' }));
+                    showToast('Demo Login successful! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = 'admin.html', 1000);
+                } else if (email === 'ramesh@email.com' && password === 'citizen123') {
+                    localStorage.setItem('bhsToken', 'demo-citizen-token');
+                    localStorage.setItem('bhsUser', JSON.stringify({ id: 'c1', name: 'Ramesh Kumar', email, role: 'citizen' }));
+                    showToast('Demo Login successful! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = 'records.html', 1000);
+                } else {
+                    showToast('Network error or invalid credentials', 'error');
+                }
+            } finally {
+                setLoading('login-btn', false);
+            }
+        });
+
+        // Register Form Submission
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
+            const aadhaar = document.getElementById('reg-aadhaar').value;
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm-password').value;
+            const confirmError = document.getElementById('reg-confirm-error');
+            
+            if (password !== confirm) {
+                confirmError.style.display = 'block';
+                return;
+            } else {
+                confirmError.style.display = 'none';
+            }
+            
+            setLoading('register-btn', true);
+            
+            try {
+                // Try real API first
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, aadhaar, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('bhsToken', data.token);
+                    localStorage.setItem('bhsUser', JSON.stringify(data.user));
+                    
+                    showToast('Registration successful! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = 'records.html', 1000);
+                } else {
+                    showToast(data.message || 'Registration failed', 'error');
+                }
+            } catch (err) {
+                // Fallback to Demo Registration if API is unreachable
+                console.log("API not reachable, using demo registration fallback...");
+                
+                localStorage.setItem('bhsToken', 'demo-new-token');
+                localStorage.setItem('bhsUser', JSON.stringify({ id: 'u' + Date.now(), name, email, role: 'citizen' }));
+                
+                showToast('Demo Registration successful! Redirecting...', 'success');
+                setTimeout(() => window.location.href = 'records.html', 1000);
+            } finally {
+                setLoading('register-btn', false);
+            }
+        });
+    </script>
+</body>
+</html>

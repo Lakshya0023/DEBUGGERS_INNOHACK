@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BhoomiSeva — Land Services Portal</title>
+    <meta name="description" content="Digital Land Record Services — Patta, Chitta, Khatauni, FMB, TSLR, A-Register and more.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --bg: #050b18;
+            --bg-card: rgba(15,25,50,0.85);
+            --border: rgba(255,255,255,0.08);
+            --primary: #1d4ed8;
+            --primary-lite: #3b82f6;
+            --green: #16a34a;
+            --green-lite: #22c55e;
+            --amber: #d97706;
+            --amber-lite: #f59e0b;
+            --red: #dc2626;
+            --red-lite: #f87171;
+            --purple: #7c3aed;
+            --purple-lite: #a78bfa;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --radius: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+        /* LAYOUT */
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; flex-shrink: 0; background: rgba(5,12,30,0.96); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        .main { margin-left: 260px; flex: 1; }
+
+        /* SIDEBAR */
+        .sidebar-logo { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+        .sidebar-logo .brand { font-size: 1.2rem; font-weight: 800; color: #fff; }
+        .sidebar-logo .tagline { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+        .nav-section { padding: 12px 12px 4px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 8px; color: var(--text-muted); text-decoration: none; font-size: 0.875rem; font-weight: 500; margin: 2px 8px; transition: all 0.2s; }
+        .nav-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
+        .nav-link.active { background: rgba(29,78,216,0.25); color: var(--primary-lite); border-left: 3px solid var(--primary-lite); }
+        .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+
+        /* HEADER */
+        .page-header { background: linear-gradient(135deg, #0a1628 0%, #0f2040 40%, #0d1f3c 100%); border-bottom: 1px solid var(--border); padding: 0 32px; position: sticky; top: 0; z-index: 50; }
+        .header-inner { display: flex; align-items: center; gap: 16px; height: 64px; }
+        .header-title { font-size: 1.1rem; font-weight: 700; }
+        .header-sub { font-size: 0.78rem; color: var(--text-muted); }
+        .header-badge { background: linear-gradient(90deg,#16a34a,#22c55e); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+
+        /* HERO BANNER */
+        .services-hero { background: linear-gradient(135deg, #0c1e3d 0%, #1a3a6b 50%, #0c1e3d 100%); padding: 40px 32px 32px; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+        .services-hero::before { content: ''; position: absolute; top: -50%; left: -20%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(29,78,216,0.15) 0%, transparent 70%); pointer-events: none; }
+        .services-hero::after  { content: ''; position: absolute; bottom: -30%; right: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(22,163,74,0.1) 0%, transparent 70%); pointer-events: none; }
+        .hero-title { font-size: 2rem; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        .hero-sub { color: var(--text-muted); font-size: 0.95rem; max-width: 600px; line-height: 1.6; }
+        .hero-stats { display: flex; gap: 32px; margin-top: 24px; flex-wrap: wrap; }
+        .hero-stat { text-align: center; }
+        .hero-stat .val { font-size: 1.8rem; font-weight: 800; color: #60a5fa; }
+        .hero-stat .lbl { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* CONTENT AREA */
+        .content { padding: 28px 32px; }
+
+        /* CATEGORY TABS */
+        .cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+        .cat-tab { padding: 8px 18px; border-radius: 30px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); color: var(--text-muted); background: transparent; transition: all 0.2s; }
+        .cat-tab:hover { border-color: #3b82f6; color: #60a5fa; }
+        .cat-tab.active { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+        .cat-tab[data-cat="tn"].active    { background: #16a34a; border-color: #16a34a; }
+        .cat-tab[data-cat="bhulekh"].active { background: #7c3aed; border-color: #7c3aed; }
+        .cat-tab[data-cat="verify"].active  { background: #d97706; border-color: #d97706; }
+        .cat-tab[data-cat="apply"].active   { background: #dc2626; border-color: #dc2626; }
+
+        /* SERVICE GRID */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+        .service-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
+        .service-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, transparent, rgba(255,255,255,0.02)); pointer-events: none; }
+        .service-card:hover { transform: translateY(-3px); border-color: rgba(96,165,250,0.4); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+        .service-card.cat-tn:hover      { border-color: rgba(34,197,94,0.4); }
+        .service-card.cat-bhulekh:hover { border-color: rgba(167,139,250,0.4); }
+        .service-card.cat-verify:hover  { border-color: rgba(251,191,36,0.4); }
+        .service-card.cat-apply:hover   { border-color: rgba(248,113,113,0.4); }
+
+        .svc-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 14px; }
+        .svc-icon.blue   { background: rgba(29,78,216,0.2); }
+        .svc-icon.green  { background: rgba(22,163,74,0.2); }
+        .svc-icon.purple { background: rgba(124,58,237,0.2); }
+        .svc-icon.amber  { background: rgba(217,119,6,0.2); }
+        .svc-icon.red    { background: rgba(220,38,38,0.2); }
+        .svc-icon.teal   { background: rgba(20,184,166,0.2); }
+
+        .svc-title { font-size: 0.95rem; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+        .svc-desc  { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px; }
+        .svc-tags  { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .svc-tag   { font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.07); color: var(--text-muted); }
+        .svc-btn { width: 100%; padding: 8px; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .svc-btn.blue   { background: rgba(29,78,216,0.3); color: #93c5fd; }
+        .svc-btn.green  { background: rgba(22,163,74,0.3); color: #86efac; }
+        .svc-btn.purple { background: rgba(124,58,237,0.3); color: #c4b5fd; }
+        .svc-btn.amber  { background: rgba(217,119,6,0.3); color: #fcd34d; }
+        .svc-btn.red    { background: rgba(220,38,38,0.3); color: #fca5a5; }
+        .svc-btn.teal   { background: rgba(20,184,166,0.3); color: #5eead4; }
+        .svc-btn:hover  { opacity: 0.85; transform: scale(1.02); }
+
+        /* MODAL */
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); }
+        .modal-bg.active { display: flex; }
+        .modal-box { background: #0a1628; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; width: 100%; max-width: 760px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 80px rgba(0,0,0,0.6); }
+        .modal-hdr { padding: 24px 28px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; position: sticky; top: 0; background: #0a1628; z-index: 10; border-radius: 18px 18px 0 0; }
+        .modal-title { font-size: 1.1rem; font-weight: 700; }
+        .modal-sub   { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; }
+        .modal-close { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.07); border: none; color: #fff; font-size: 1rem; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .modal-body  { padding: 24px 28px; }
+        .modal-footer { padding: 16px 28px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+        /* SEARCH STEPS */
+        .step-bar { display: flex; gap: 0; margin-bottom: 24px; }
+        .step-item { flex: 1; text-align: center; padding: 10px 6px; font-size: 0.72rem; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); transition: all 0.2s; }
+        .step-item.active { color: #60a5fa; border-bottom-color: #3b82f6; }
+        .step-item.done   { color: #22c55e; border-bottom-color: #16a34a; }
+        .step-num { width: 22px; height: 22px; border-radius: 50%; border: 2px solid currentColor; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem; margin-bottom: 4px; }
+
+        /* FORM FIELDS */
+        .form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .form-row.single { grid-template-columns: 1fr; }
+        .form-grp  { display: flex; flex-direction: column; gap: 6px; }
+        .form-lbl  { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-ctrl { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.875rem; width: 100%; outline: none; transition: border-color 0.2s; }
+        .form-ctrl:focus { border-color: #3b82f6; }
+        .form-ctrl option { background: #0a1628; }
+
+        /* CAPTCHA */
+        .captcha-box { background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 16px; }
+        .captcha-img { background: linear-gradient(135deg, #1e3a5f, #0f2040); padding: 10px 16px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 1.4rem; font-weight: 900; letter-spacing: 8px; color: #60a5fa; text-decoration: line-through wavy rgba(255,255,255,0.2); user-select: none; min-width: 140px; text-align: center; }
+        .captcha-refresh { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+        .captcha-input { flex: 1; }
+
+        /* RESULT DISPLAY */
+        .result-panel { display: none; }
+        .result-panel.show { display: block; }
+        .doc-header { background: linear-gradient(135deg, #0c3547, #0a2636); border: 1px solid rgba(96,165,250,0.2); border-radius: 12px; padding: 20px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .doc-header::before { content: '🏛'; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 4rem; opacity: 0.07; }
+        .doc-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #60a5fa; font-weight: 700; margin-bottom: 6px; }
+        .doc-number { font-size: 1.3rem; font-weight: 800; color: #f1f5f9; }
+        .doc-meta   { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+
+        .info-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .info-item  { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+        .info-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .info-value { font-size: 0.9rem; font-weight: 600; color: #f1f5f9; }
+        .info-value.green  { color: #22c55e; }
+        .info-value.red    { color: #f87171; }
+        .info-value.amber  { color: #fcd34d; }
+
+        .section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #60a5fa; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        .owner-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .owner-table th { padding: 8px 12px; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+        .owner-table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+        .status-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+        .pill-green  { background: rgba(22,163,74,0.2); color: #22c55e; }
+        .pill-red    { background: rgba(220,38,38,0.2); color: #f87171; }
+        .pill-amber  { background: rgba(217,119,6,0.2); color: #fcd34d; }
+        .pill-blue   { background: rgba(29,78,216,0.2); color: #60a5fa; }
+        .pill-purple { background: rgba(124,58,237,0.2); color: #c4b5fd; }
+
+        /* PROGRESS STEPS */
+        .progress-steps { display: flex; gap: 0; margin: 16px 0; }
+        .prog-step { flex: 1; text-align: center; position: relative; }
+        .prog-step::before { content: ''; position: absolute; top: 13px; left: -50%; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+        .prog-step:first-child::before { display: none; }
+        .prog-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: #0a1628; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; position: relative; z-index: 1; transition: all 0.3s; }
+        .prog-step.done .prog-dot { background: #16a34a; border-color: #16a34a; color: #fff; }
+        .prog-step.done::before { background: #16a34a; }
+        .prog-label { font-size: 0.65rem; color: var(--text-muted); margin-top: 6px; }
+        .prog-step.done .prog-label { color: #22c55e; }
+
+        /* BOUNDARY MAP */
+        .boundary-diagram { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto 1fr auto; gap: 0; border: 2px solid rgba(96,165,250,0.3); border-radius: 10px; overflow: hidden; text-align: center; font-size: 0.75rem; }
+        .bound-north { grid-column: 1/-1; background: rgba(29,78,216,0.1); padding: 8px; color: #60a5fa; font-weight: 600; }
+        .bound-east  { background: rgba(22,163,74,0.1);  padding: 12px 8px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; color: #22c55e; font-weight: 600; }
+        .bound-center{ background: rgba(255,255,255,0.03); padding: 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; }
+        .bound-west  { background: rgba(217,119,6,0.1);  padding: 12px 8px; writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; color: #fcd34d; font-weight: 600; }
+        .bound-south { grid-column: 1/-1; background: rgba(220,38,38,0.1);  padding: 8px; color: #f87171; font-weight: 600; }
+
+        /* QR CODE MOCK */
+        .qr-mock { display: inline-block; border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; background: #fff; }
+        .qr-mock canvas { display: block; }
+
+        /* SECURITY SECTION */
+        .security-box { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; padding: 20px; }
+        .security-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .security-row:last-child { border-bottom: none; }
+        .security-icon { font-size: 1.2rem; flex-shrink: 0; }
+        .security-text { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+        .security-text strong { color: #f87171; }
+
+        /* LOADER */
+        .loader { display: none; text-align: center; padding: 40px; }
+        .spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* BUTTONS */
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg,#1d4ed8,#2563eb); color: #fff; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(29,78,216,0.4); }
+        .btn-ghost { background: rgba(255,255,255,0.06); color: var(--text-muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-success { background: linear-gradient(135deg,#16a34a,#22c55e); color: #fff; }
+        .btn-download { background: rgba(22,163,74,0.15); color: #22c55e; border: 1px solid rgba(22,163,74,0.3); }
+        .btn-download:hover { background: rgba(22,163,74,0.3); }
+        .btn-print { background: rgba(29,78,216,0.15); color: #60a5fa; border: 1px solid rgba(29,78,216,0.3); }
+        .btn-print:hover { background: rgba(29,78,216,0.3); }
+        .btn-maps { background: rgba(217,119,6,0.15); color: #fcd34d; border: 1px solid rgba(217,119,6,0.3); }
+        .btn-maps:hover { background: rgba(217,119,6,0.3); }
+        .btn-sm { padding: 6px 14px; font-size: 0.78rem; }
+
+        /* LAND TYPES */
+        .land-type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+        .land-type-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+        .lt-code { font-size: 0.65rem; font-weight: 700; color: #60a5fa; margin-bottom: 4px; }
+        .lt-name { font-size: 0.85rem; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+        .lt-desc { font-size: 0.72rem; color: var(--text-muted); }
+
+        /* ALERTS */
+        .alert { padding: 12px 16px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 16px; display: flex; gap: 10px; align-items: flex-start; }
+        .alert-info    { background: rgba(29,78,216,0.1); border: 1px solid rgba(29,78,216,0.3); color: #93c5fd; }
+        .alert-warn    { background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.3); color: #fcd34d; }
+        .alert-success { background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.3); color: #86efac; }
+        .alert-danger  { background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3); color: #fca5a5; }
+
+        /* BENEFITS & FAQ sections */
+        .benefit-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .benefit-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .faq-item { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+        .faq-q { padding: 14px 16px; font-size: 0.875rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-q:hover { background: rgba(255,255,255,0.03); }
+        .faq-a { padding: 0 16px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; max-height: 0; overflow: hidden; transition: all 0.3s; }
+        .faq-item.open .faq-a { padding: 0 16px 14px; max-height: 200px; }
+        .faq-arrow { transition: transform 0.3s; }
+        .faq-item.open .faq-arrow { transform: rotate(180deg); }
+
+        .issue-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 12px; }
+        .issue-table th { text-align: left; padding: 8px 12px; background: rgba(255,255,255,0.04); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .issue-table td { padding: 10px 12px; border-top: 1px solid var(--border); }
+        .issue-table td:first-child { color: #fca5a5; font-weight: 600; }
+        .issue-table td:last-child  { color: #86efac; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .services-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .info-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="brand">🏛 BhoomiSeva</div>
+            <div class="tagline">Digital Land Record Management</div>
+        </div>
+        <div class="nav-section">Navigation</div>
+        <a href="index.html" class="nav-link"><span class="nav-icon">🏠</span> Home</a>
+        <a href="map.html" class="nav-link"><span class="nav-icon">🗺️</span> Map Explorer</a>
+        <a href="records.html" class="nav-link"><span class="nav-icon">📋</span> Land Records</a>
+        <a href="services.html" class="nav-link active"><span class="nav-icon">🏛</span> Land Services</a>
+        <a href="grievance.html" class="nav-link"><span class="nav-icon">📝</span> Grievances</a>
+        <a href="admin.html" class="nav-link"><span class="nav-icon">⚙️</span> Admin Dashboard</a>
+        <div class="nav-section" style="margin-top:auto;">Security</div>
+        <a href="#" class="nav-link" onclick="openModal('modal-security');return false;"><span class="nav-icon">🔒</span> Cyber Security</a>
+        <a href="login.html" class="nav-link"><span class="nav-icon">👤</span> Login / Register</a>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        <!-- HEADER -->
+        <div class="page-header">
+            <div class="header-inner">
+                <div>
+                    <div class="header-title">Land Services Portal</div>
+                    <div class="header-sub">Patta · Chitta · Khatauni · FMB · TSLR · A-Register · Bhulekh</div>
+                </div>
+                <span class="header-badge">800+ Records</span>
+            </div>
+        </div>
+
+        <!-- HERO -->
+        <div class="services-hero">
+            <div class="hero-title">Integrated Land Record Services</div>
+            <div class="hero-sub">Access all land document services online — Patta Transfer, Khatauni, FMB Sketch, TSLR, Dispute Status and more. No office visits required.</div>
+            <div class="hero-stats">
+                <div class="hero-stat"><div class="val">800+</div><div class="lbl">Parcels</div></div>
+                <div class="hero-stat"><div class="val">8</div><div class="lbl">Cities</div></div>
+                <div class="hero-stat"><div class="val">14</div><div class="lbl">Services</div></div>
+                <div class="hero-stat"><div class="val">12</div><div class="lbl">Land Types</div></div>
+                <div class="hero-stat"><div class="val">Free</div><div class="lbl">No API Key</div></div>
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+            <!-- CATEGORY TABS -->
+            <div class="cat-tabs">
+                <button class="cat-tab active" data-cat="all" onclick="filterCat('all',this)">🔍 All Services</button>
+                <button class="cat-tab" data-cat="integrated" onclick="filterCat('integrated',this)">📄 Integrated Records</button>
+                <button class="cat-tab" data-cat="tn" onclick="filterCat('tn',this)">🌿 TN Patta / FMB</button>
+                <button class="cat-tab" data-cat="bhulekh" onclick="filterCat('bhulekh',this)">📜 Bhulekh / UP</button>
+                <button class="cat-tab" data-cat="verify" onclick="filterCat('verify',this)">✅ Verify</button>
+                <button class="cat-tab" data-cat="apply" onclick="filterCat('apply',this)">📝 Apply Online</button>
+                <button class="cat-tab" data-cat="info" onclick="filterCat('info',this)">ℹ️ Info & FAQ</button>
+            </div>
+
+            <!-- SERVICE CARDS GRID -->
+            <div class="services-grid" id="svcGrid">
+
+                <!-- 1. INTEGRATED LAND RECORD -->
+                <div class="service-card cat-integrated" data-cat="integrated">
+                    <div class="svc-icon blue">📑</div>
+                    <div class="svc-title">Integrated Land Record</div>
+                    <div class="svc-desc">View complete RTC/Patta with ownership, area, classification, revenue liabilities and map location.</div>
+                    <div class="svc-tags"><span class="svc-tag">District</span><span class="svc-tag">Tehsil</span><span class="svc-tag">Village</span><span class="svc-tag">Free</span></div>
+                    <button class="svc-btn blue" onclick="openServiceModal('khatauni','Integrated Land Record','📑')">View Record →</button>
+                </div>
+
+                <!-- 2. APPLY PATTA TRANSFER -->
+                <div class="service-card cat-apply" data-cat="apply">
+                    <div class="svc-icon red">📤</div>
+                    <div class="svc-title">Apply Online Patta Transfer</div>
+                    <div class="svc-desc">Submit an online application for ownership transfer of land. Track application status with ID.</div>
+                    <div class="svc-tags"><span class="svc-tag">Apply</span><span class="svc-tag">Transfer</span><span class="svc-tag">21 Days</span></div>
+                    <button class="svc-btn red" onclick="openServiceModal('patta_transfer','Apply Patta Transfer','📤')">Apply Now →</button>
+                </div>
+
+                <!-- 3. VIEW PATTA/CHITTA/FMB -->
+                <div class="service-card cat-tn" data-cat="tn">
+                    <div class="svc-icon green">📋</div>
+                    <div class="svc-title">View Patta / Chitta / FMB</div>
+                    <div class="svc-desc">View official Patta, Chitta and FMB documents for Rural and Natham land. Includes boundary details.</div>
+                    <div class="svc-tags"><span class="svc-tag">Rural</span><span class="svc-tag">Natham</span><span class="svc-tag">Tamil Nadu</span></div>
+                    <button class="svc-btn green" onclick="openServiceModal('patta','View Patta / Chitta','📋')">View Document →</button>
+                </div>
+
+                <!-- 4. A-REGISTER EXTRACT -->
+                <div class="service-card cat-tn" data-cat="tn">
+                    <div class="svc-icon green">📓</div>
+                    <div class="svc-title">View A-Register Extract</div>
+                    <div class="svc-desc">Access the village A-Register with Fasli year, assessment values, land revenue, kist amounts and patta type.</div>
+                    <div class="svc-tags"><span class="svc-tag">Rural</span><span class="svc-tag">Natham</span><span class="svc-tag">Fasli</span></div>
+                    <button class="svc-btn green" onclick="openServiceModal('a_register','A-Register Extract','📓')">View Extract →</button>
+                </div>
+
+                <!-- 5. VERIFY PATTA/CHITTA -->
+                <div class="service-card cat-verify" data-cat="verify">
+                    <div class="svc-icon amber">✅</div>
+                    <div class="svc-title">Verify Patta / Chitta</div>
+                    <div class="svc-desc">Authenticate any Patta/Chitta document with digital signature and QR code verification against government records.</div>
+                    <div class="svc-tags"><span class="svc-tag">Verify</span><span class="svc-tag">Digital Sig</span><span class="svc-tag">QR Code</span></div>
+                    <button class="svc-btn amber" onclick="openServiceModal('verify_patta','Verify Patta / Chitta','✅')">Verify Now →</button>
+                </div>
+
+                <!-- 6. PORAMBOKE -->
+                <div class="service-card cat-verify" data-cat="verify">
+                    <div class="svc-icon amber">🏛</div>
+                    <div class="svc-title">Verify Govt / Private Land</div>
+                    <div class="svc-desc">Check if a land parcel is Government (Poramboke) or private (Ryotwari). Check encroachment status.</div>
+                    <div class="svc-tags"><span class="svc-tag">Poramboke</span><span class="svc-tag">Govt Land</span><span class="svc-tag">Encroachment</span></div>
+                    <button class="svc-btn amber" onclick="openServiceModal('poramboke','Verify Govt / Poramboke Land','🏛')">Check Now →</button>
+                </div>
+
+                <!-- 7. FMB SKETCH -->
+                <div class="service-card cat-tn" data-cat="tn">
+                    <div class="svc-icon teal">📐</div>
+                    <div class="svc-title">FMB Sketch</div>
+                    <div class="svc-desc">Field Measurement Book sketch with corner coordinates, bearings, perimeter, scale and boundary statement.</div>
+                    <div class="svc-tags"><span class="svc-tag">Sketch</span><span class="svc-tag">Bearing</span><span class="svc-tag">Scale</span></div>
+                    <button class="svc-btn teal" onclick="openServiceModal('fmb','FMB Sketch','📐')">View Sketch →</button>
+                </div>
+
+                <!-- 8. PATTA ORDER COPY -->
+                <div class="service-card cat-tn" data-cat="tn">
+                    <div class="svc-icon green">🖨️</div>
+                    <div class="svc-title">View Patta Order Copy</div>
+                    <div class="svc-desc">View and download the official certified Patta order copy issued by the Tahsildar office.</div>
+                    <div class="svc-tags"><span class="svc-tag">Certified</span><span class="svc-tag">Download</span><span class="svc-tag">Print</span></div>
+                    <button class="svc-btn green" onclick="openServiceModal('patta','Patta Order Copy','🖨️')">View Copy →</button>
+                </div>
+
+                <!-- 9. TSLR EXTRACT -->
+                <div class="service-card cat-integrated" data-cat="integrated">
+                    <div class="svc-icon blue">🏙️</div>
+                    <div class="svc-title">TSLR Extract — Urban</div>
+                    <div class="svc-desc">Town Survey Land Register extract with ward, block, plot number, door number, FSI and property tax zone.</div>
+                    <div class="svc-tags"><span class="svc-tag">Urban</span><span class="svc-tag">TSLR</span><span class="svc-tag">Ward</span></div>
+                    <button class="svc-btn blue" onclick="openServiceModal('tslr','TSLR Extract','🏙️')">View Extract →</button>
+                </div>
+
+                <!-- 10. TSLR SKETCH -->
+                <div class="service-card cat-integrated" data-cat="integrated">
+                    <div class="svc-icon blue">🗺️</div>
+                    <div class="svc-title">TSLR Sketch — Urban</div>
+                    <div class="svc-desc">Urban survey sketch with coordinates, FSI, property tax zone and municipal details for town survey numbers.</div>
+                    <div class="svc-tags"><span class="svc-tag">Sketch</span><span class="svc-tag">Urban</span><span class="svc-tag">Municipal</span></div>
+                    <button class="svc-btn blue" onclick="openServiceModal('tslr','TSLR Sketch','🗺️')">View Sketch →</button>
+                </div>
+
+                <!-- 11. APPLICATION STATUS -->
+                <div class="service-card cat-integrated" data-cat="integrated">
+                    <div class="svc-icon purple">🔍</div>
+                    <div class="svc-title">Application Status</div>
+                    <div class="svc-desc">Track the status of any application — Patta Transfer, Mutation, FMB, Grievance — using Application ID or Ticket ID.</div>
+                    <div class="svc-tags"><span class="svc-tag">Track</span><span class="svc-tag">All Types</span><span class="svc-tag">Real-time</span></div>
+                    <button class="svc-btn purple" onclick="openServiceModal('app_status','Application Status','🔍')">Track Status →</button>
+                </div>
+
+                <!-- 12. F-LINE SKETCH -->
+                <div class="service-card cat-tn" data-cat="tn">
+                    <div class="svc-icon teal">📏</div>
+                    <div class="svc-title">F-Line Sketch / Statement</div>
+                    <div class="svc-desc">Field line sketch with detailed boundary statement, line bearings, lengths and corner coordinates.</div>
+                    <div class="svc-tags"><span class="svc-tag">F-Line</span><span class="svc-tag">Bearing</span><span class="svc-tag">Boundary</span></div>
+                    <button class="svc-btn teal" onclick="openServiceModal('fline','F-Line Sketch / Statement','📏')">View F-Line →</button>
+                </div>
+
+                <!-- 13. KHATAUNI / BHULEKH -->
+                <div class="service-card cat-bhulekh" data-cat="bhulekh">
+                    <div class="svc-icon purple">📜</div>
+                    <div class="svc-title">Khatauni (Rights Record)</div>
+                    <div class="svc-desc">UP-style Khatauni with Gata number, unique code, Fasli year, rights holders, revenue liabilities and certified copy.</div>
+                    <div class="svc-tags"><span class="svc-tag">UP</span><span class="svc-tag">Bhulekh</span><span class="svc-tag">Rights</span></div>
+                    <button class="svc-btn purple" onclick="openServiceModal('khatauni','Khatauni — Rights Record','📜')">View Khatauni →</button>
+                </div>
+
+                <!-- 14. KHASRA/GATA -->
+                <div class="service-card cat-bhulekh" data-cat="bhulekh">
+                    <div class="svc-icon purple">🌾</div>
+                    <div class="svc-title">Khasra / Gata Details</div>
+                    <div class="svc-desc">Revenue village Khasra with Gata number, unique code, cultivation type, irrigation, crop season and co-sharers.</div>
+                    <div class="svc-tags"><span class="svc-tag">Gata</span><span class="svc-tag">Unique Code</span><span class="svc-tag">Revenue Village</span></div>
+                    <button class="svc-btn purple" onclick="openServiceModal('khasra','Khasra / Gata Details','🌾')">View Khasra →</button>
+                </div>
+
+                <!-- 15. DISPUTE STATUS -->
+                <div class="service-card cat-verify" data-cat="verify">
+                    <div class="svc-icon amber">⚖️</div>
+                    <div class="svc-title">Plot / Dispute Status</div>
+                    <div class="svc-desc">Know if a plot has any active legal disputes, court case details, next hearing date and whether transfer is allowed.</div>
+                    <div class="svc-tags"><span class="svc-tag">Dispute</span><span class="svc-tag">Court</span><span class="svc-tag">Sale Status</span></div>
+                    <button class="svc-btn amber" onclick="openServiceModal('dispute_status','Plot Dispute Status','⚖️')">Check Dispute →</button>
+                </div>
+
+                <!-- 16. SALE STATUS -->
+                <div class="service-card cat-verify" data-cat="verify">
+                    <div class="svc-icon amber">💰</div>
+                    <div class="svc-title">Plot Sale Status</div>
+                    <div class="svc-desc">Check if a plot has any pending sale agreement, buyer details, agreed value and registration deadline.</div>
+                    <div class="svc-tags"><span class="svc-tag">Sale</span><span class="svc-tag">Pending</span><span class="svc-tag">Transaction</span></div>
+                    <button class="svc-btn amber" onclick="openServiceModal('sale_status','Plot Sale Status','💰')">Check Sale →</button>
+                </div>
+
+                <!-- 17. GOVT LAND SEARCH -->
+                <div class="service-card cat-bhulekh" data-cat="bhulekh">
+                    <div class="svc-icon purple">🏕️</div>
+                    <div class="svc-title">Search Government Land</div>
+                    <div class="svc-desc">Search and identify government (Poramboke) vs private land in any district. Check encroachment details.</div>
+                    <div class="svc-tags"><span class="svc-tag">Govt Land</span><span class="svc-tag">Poramboke</span><span class="svc-tag">District</span></div>
+                    <button class="svc-btn purple" onclick="openServiceModal('govt_land','Search Government Land','🏕️')">Search Land →</button>
+                </div>
+
+                <!-- 18. OWNER SEARCH -->
+                <div class="service-card cat-integrated" data-cat="integrated">
+                    <div class="svc-icon blue">👤</div>
+                    <div class="svc-title">Search by Owner Name</div>
+                    <div class="svc-desc">Find all land parcels registered under a specific owner name across all districts and cities.</div>
+                    <div class="svc-tags"><span class="svc-tag">Owner</span><span class="svc-tag">Name Search</span><span class="svc-tag">All Districts</span></div>
+                    <button class="svc-btn blue" onclick="openServiceModal('owner_search','Search by Owner Name','👤')">Search Owner →</button>
+                </div>
+
+                <!-- 19. AADHAAR LINKED -->
+                <div class="service-card cat-integrated" data-cat="integrated">
+                    <div class="svc-icon blue">🆔</div>
+                    <div class="svc-title">Aadhaar-Linked Property</div>
+                    <div class="svc-desc">Find properties linked to an Aadhaar number. Shows all registered parcels associated with the citizen.</div>
+                    <div class="svc-tags"><span class="svc-tag">Aadhaar</span><span class="svc-tag">Linked</span><span class="svc-tag">Secure</span></div>
+                    <button class="svc-btn blue" onclick="openServiceModal('aadhaar','Aadhaar-Linked Property','🆔')">Search →</button>
+                </div>
+
+                <!-- 20. LAND TYPES LIST -->
+                <div class="service-card cat-info" data-cat="info">
+                    <div class="svc-icon teal">📋</div>
+                    <div class="svc-title">List of Land Types</div>
+                    <div class="svc-desc">View all 12 official land type classifications with codes, names and descriptions used in revenue records.</div>
+                    <div class="svc-tags"><span class="svc-tag">Reference</span><span class="svc-tag">12 Types</span><span class="svc-tag">Codes</span></div>
+                    <button class="svc-btn teal" onclick="openServiceModal('land_types','List of Land Types','📋')">View Types →</button>
+                </div>
+
+                <!-- 21. BENEFITS & FAQ -->
+                <div class="service-card cat-info" data-cat="info">
+                    <div class="svc-icon teal">💡</div>
+                    <div class="svc-title">Benefits & How to Check</div>
+                    <div class="svc-desc">Guide to checking land records online, benefits, common issues and FAQs about Bhulekh portals.</div>
+                    <div class="svc-tags"><span class="svc-tag">Guide</span><span class="svc-tag">FAQ</span><span class="svc-tag">Help</span></div>
+                    <button class="svc-btn teal" onclick="openServiceModal('benefits','Benefits & FAQ','💡')">Read Guide →</button>
+                </div>
+
+            </div>
+        </div><!-- /content -->
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL SHELL
+════════════════════════════════════════════════════════════ -->
+<div class="modal-bg" id="svcModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+        <div class="modal-hdr">
+            <div>
+                <div class="modal-title" id="svcModalTitle">Service</div>
+                <div class="modal-sub" id="svcModalSub">BhoomiSeva Land Services Portal</div>
+            </div>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="svcModalBody">
+            <!-- Injected by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- CYBER SECURITY MODAL -->
+<div class="modal-bg" id="modal-security" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="modal-box">
+        <div class="modal-hdr">
+            <div>
+                <div class="modal-title">🔒 Cyber Security Guidelines</div>
+                <div class="modal-sub">UP Cyber Security Guidelines — Bhulekh Portal</div>
+            </div>
+            <button class="modal-close" onclick="document.getElementById('modal-security').classList.remove('active')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-warn">⚠️ Please read these guidelines carefully before using the Land Services Portal to protect your data.</div>
+            <div class="security-box">
+                <div class="security-row"><div class="security-icon">🔐</div><div class="security-text"><strong>Never share your OTP or password</strong> with anyone — not even revenue department officials. Government portals will never ask for your password.</div></div>
+                <div class="security-row"><div class="security-icon">🌐</div><div class="security-text"><strong>Always verify the URL</strong> before entering Aadhaar or personal details. Ensure the site uses HTTPS and the domain is official.</div></div>
+                <div class="security-row"><div class="security-icon">📱</div><div class="security-text"><strong>Do not use public Wi-Fi</strong> or shared computers to access land records linked to Aadhaar. Use private networks only.</div></div>
+                <div class="security-row"><div class="security-icon">📩</div><div class="security-text"><strong>Beware of phishing emails</strong> claiming to be from Bhulekh/BhoomiSeva. Official communications will only come from .gov.in domains.</div></div>
+                <div class="security-row"><div class="security-icon">💳</div><div class="security-text"><strong>Certified copy payment</strong> should only be done through official state government payment gateways. Avoid third-party payment links.</div></div>
+                <div class="security-row"><div class="security-icon">🔍</div><div class="security-text"><strong>Regularly verify</strong> your land records online to detect any unauthorized mutations or transfers on your property.</div></div>
+                <div class="security-row"><div class="security-icon">📞</div><div class="security-text"><strong>Report suspected fraud</strong> to the Cyber Crime Cell: 1930 (National Helpline) or your state's revenue department helpline immediately.</div></div>
+                <div class="security-row"><div class="security-icon">🏛</div><div class="security-text"><strong>No government official</strong> should be demanding cash or digital payments for land record services. Report bribery to the Anti-Corruption Bureau.</div></div>
+                <div class="security-row"><div class="security-icon">🔄</div><div class="security-text"><strong>Keep browser updated</strong>. Use only official apps from state government websites. Do not use unofficial third-party apps claiming to show land records.</div></div>
+                <div class="security-row"><div class="security-icon">📋</div><div class="security-text"><strong>Download records only</strong> from authenticated sessions. QR-code signed documents are the only legally valid downloadable copies.</div></div>
+            </div>
+            <div style="margin-top:16px;text-align:right;">
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-security').classList.remove('active')">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+//  UTILITIES
+// ─────────────────────────────────────────
+const INR = new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0});
+const fmtINR = v => INR.format(v);
+const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+function openModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('svcModal').classList.remove('active');
+}
+
+function filterCat(cat, btn) {
+    document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.service-card').forEach(c => {
+        c.style.display = (cat === 'all' || c.dataset.cat === cat) ? '' : 'none';
+    });
+}
+
+// ─────────────────────────────────────────
+//  CAPTCHA
+// ─────────────────────────────────────────
+let captchaAnswer = '';
+function genCaptcha() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    captchaAnswer = Array.from({length:6}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+    const el = document.getElementById('captchaText');
+    if (el) el.textContent = captchaAnswer.split('').join(' ');
+}
+function verifyCaptcha() {
+    const input = document.getElementById('captchaInput')?.value?.replace(/\s/g,'').toUpperCase() || '';
+    return input === captchaAnswer;
+}
+
+// ─────────────────────────────────────────
+//  GEO CASCADING DROPDOWNS
+// ─────────────────────────────────────────
+async function loadDistricts(selectId) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const r = await fetch('/api/geo/districts');
+    const d = await r.json();
+    sel.innerHTML = '<option value="">— Select District —</option>' +
+        d.districts.map(x => `<option value="${x.district}">${x.district} (${x.state})</option>`).join('');
+}
+
+async function onDistrictChange(districtId, tehsilId) {
+    const district = document.getElementById(districtId).value;
+    const tehsilSel = document.getElementById(tehsilId);
+    if (!district) { tehsilSel.innerHTML = '<option value="">— Select Tehsil/Block —</option>'; return; }
+    const r = await fetch(`/api/geo/tehsils?district=${encodeURIComponent(district)}`);
+    const d = await r.json();
+    tehsilSel.innerHTML = '<option value="">— Select Tehsil/Block —</option>' +
+        d.tehsils.map(t => `<option value="${t}">${t}</option>`).join('');
+    const villageId = tehsilId.replace('tehsil','village');
+    const villageSel = document.getElementById(villageId);
+    if (villageSel) villageSel.innerHTML = '<option value="">— Select Village/Pargana —</option>';
+}
+
+async function onTehsilChange(districtId, tehsilId) {
+    const district = document.getElementById(districtId).value;
+    const tehsil   = document.getElementById(tehsilId).value;
+    const villageId = tehsilId.replace('tehsil','village');
+    const villageSel = document.getElementById(villageId);
+    if (!villageSel || !tehsil) return;
+    const r = await fetch(`/api/geo/villages?district=${encodeURIComponent(district)}&tehsil=${encodeURIComponent(tehsil)}`);
+    const d = await r.json();
+    villageSel.innerHTML = '<option value="">— Select Village —</option>' +
+        d.villages.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
+// ─────────────────────────────────────────
+//  GENERIC SEARCH FORM BUILDER
+// ─────────────────────────────────────────
+function buildSearchForm(type, label, icon) {
+    const hasSurvey = !['govt_land','owner_search','aadhaar','land_types','benefits','app_status'].includes(type);
+    const hasGeo    = ['khatauni','khasra','govt_land','owner_search'].includes(type);
+    const hasAppId  = type === 'app_status';
+    const hasOwner  = type === 'owner_search';
+    const hasAadhaar= type === 'aadhaar';
+    const hasKhata  = type === 'khatauni';
+    const hasGata   = type === 'khasra';
+    const isTransfer= type === 'patta_transfer';
+
+    if (type === 'land_types') { fetchAndShowLandTypes(); return; }
+    if (type === 'benefits')   { showBenefitsFAQ(); return; }
+
+    let html = `
+    <div class="step-bar">
+        <div class="step-item ${hasSurvey||hasGeo||hasAadhaar||hasOwner||hasKhata||hasGata||hasAppId||isTransfer ? 'active':''}" id="step1"><div class="step-num">1</div><div>Details</div></div>
+        <div class="step-item" id="step2"><div class="step-num">2</div><div>Captcha</div></div>
+        <div class="step-item" id="step3"><div class="step-num">3</div><div>Result</div></div>
+    </div>
+
+    <!-- STEP 1: INPUT -->
+    <div id="formStep1">
+        <div class="alert alert-info">ℹ️ Enter any one of the search parameters below to view the record.</div>`;
+
+    if (hasGeo) html += `
+        <div class="form-row">
+            <div class="form-grp">
+                <label class="form-lbl">District</label>
+                <select class="form-ctrl" id="s_district" onchange="onDistrictChange('s_district','s_tehsil')"></select>
+            </div>
+            <div class="form-grp">
+                <label class="form-lbl">Tehsil / Block</label>
+                <select class="form-ctrl" id="s_tehsil" onchange="onTehsilChange('s_district','s_tehsil')">
+                    <option value="">— Select Tehsil —</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row single">
+            <div class="form-grp">
+                <label class="form-lbl">Village / Pargana</label>
+                <select class="form-ctrl" id="s_village"><option value="">— Select Village —</option></select>
+            </div>
+        </div>`;
+
+    if (hasSurvey) html += `
+        <div class="form-row single">
+            <div class="form-grp">
+                <label class="form-lbl">Survey / Plot / Gata Number</label>
+                <input class="form-ctrl" id="s_survey" type="text" placeholder="e.g. BLR-001/B-249F or VLR-045/A-3B2C">
+            </div>
+        </div>`;
+
+    if (hasKhata) html += `
+        <div class="form-row single">
+            <div class="form-grp">
+                <label class="form-lbl">Khata Number (Optional)</label>
+                <input class="form-ctrl" id="s_khata" type="text" placeholder="e.g. 1234">
+            </div>
+        </div>`;
+
+    if (hasGata) html += `
+        <div class="form-row single">
+            <div class="form-grp">
+                <label class="form-lbl">Gata / Unique Code (Optional)</label>
+                <input class="form-ctrl" id="s_gata" type="text" placeholder="e.g. 4521">
+            </div>
+        </div>`;
+
+    if (hasOwner) html += `
+        <div class="form-row single">
+            <div class="form-grp">
+                <label class="form-lbl">Owner Name</label>
+                <input class="form-ctrl" id="s_owner" type="text" placeholder="e.g. Ramesh Kumar">
+            </div>
+        </div>`;
+
+    if (hasAadhaar) html += `
+        <div class="form-row single">
+            <div class="form-grp">
+                <label class="form-lbl">Aadhaar Number (12 digits)</label>
+                <input class="form-ctrl" id="s_aadhaar" type="text" maxlength="14" placeholder="XXXX-XXXX-XXXX">
+            </div>
+        </div>
+        <div class="alert alert-warn" style="margin-top:12px;">🔒 Your Aadhaar number is encrypted and never stored. Masked before display.</div>`;
+
+    if (hasAppId) html += `
+        <div class="form-row single">
+            <div class="form-grp">
+                <label class="form-lbl">Application ID / Ticket ID</label>
+                <input class="form-ctrl" id="s_appid" type="text" placeholder="e.g. PT-2024-A1B2C3D4 or GRV-2024-XXXXXX">
+            </div>
+        </div>`;
+
+    if (isTransfer) html += buildTransferForm();
+
+    html += `
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="goToCaptcha('${type}')">Next: Captcha →</button>
+        </div>
+    </div>
+
+    <!-- STEP 2: CAPTCHA -->
+    <div id="formStep2" style="display:none;">
+        <div class="alert alert-info">🔒 Please enter the captcha text below to verify you are human.</div>
+        <div class="captcha-box" style="margin-bottom:16px;">
+            <div class="captcha-img" id="captchaText" style="letter-spacing:10px;"></div>
+            <button class="captcha-refresh" onclick="genCaptcha()" title="Refresh">🔄</button>
+            <div class="captcha-input">
+                <input class="form-ctrl" id="captchaInput" type="text" maxlength="8" placeholder="Type captcha here" style="text-transform:uppercase;">
+            </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn btn-ghost" onclick="backToForm()">← Back</button>
+            <button class="btn btn-primary" onclick="submitService('${type}')">Submit & View Record</button>
+        </div>
+    </div>
+
+    <!-- STEP 3: LOADER + RESULT -->
+    <div class="loader" id="svcLoader"><div class="spinner"></div><div style="color:var(--text-muted);font-size:0.82rem;">Fetching from database...</div></div>
+    <div class="result-panel" id="resultPanel"></div>`;
+
+    document.getElementById('svcModalBody').innerHTML = html;
+
+    if (hasGeo) {
+        loadDistricts('s_district');
+    }
+    genCaptcha();
+}
+
+function buildTransferForm() {
+    return `
+    <div class="form-row">
+        <div class="form-grp">
+            <label class="form-lbl">Applicant Name *</label>
+            <input class="form-ctrl" id="t_applicant" type="text" placeholder="Current owner's full name">
+        </div>
+        <div class="form-grp">
+            <label class="form-lbl">Applicant Phone *</label>
+            <input class="form-ctrl" id="t_phone" type="text" placeholder="10-digit mobile number">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-grp">
+            <label class="form-lbl">Applicant Aadhaar *</label>
+            <input class="form-ctrl" id="t_aadhaar" type="text" placeholder="XXXX-XXXX-XXXX">
+        </div>
+        <div class="form-grp">
+            <label class="form-lbl">District *</label>
+            <select class="form-ctrl" id="t_district"><option value="">— Select —</option></select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-grp">
+            <label class="form-lbl">Transfer Type *</label>
+            <select class="form-ctrl" id="t_transfer_type">
+                <option value="">— Select —</option>
+                <option value="Sale">Sale</option>
+                <option value="Inheritance">Inheritance</option>
+                <option value="Gift">Gift Deed</option>
+                <option value="Partition">Partition</option>
+                <option value="Court Decree">Court Decree</option>
+                <option value="Exchange">Exchange</option>
+            </select>
+        </div>
+        <div class="form-grp">
+            <label class="form-lbl">New Owner Name *</label>
+            <input class="form-ctrl" id="t_new_owner" type="text" placeholder="Buyer/transferee name">
+        </div>
+    </div>`;
+}
+
+function goToCaptcha(type) {
+    document.getElementById('formStep1').style.display = 'none';
+    document.getElementById('formStep2').style.display = 'block';
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step1').classList.add('done');
+    document.getElementById('step2').classList.add('active');
+    genCaptcha();
+}
+
+function backToForm() {
+    document.getElementById('formStep1').style.display = 'block';
+    document.getElementById('formStep2').style.display = 'none';
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.remove('done');
+    document.getElementById('step1').classList.add('active');
+}
+
+async function submitService(type) {
+    if (!verifyCaptcha()) {
+        alert('❌ Incorrect captcha. Please try again.');
+        genCaptcha();
+        document.getElementById('captchaInput').value = '';
+        return;
+    }
+    document.getElementById('formStep2').style.display = 'none';
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step2').classList.add('done');
+    document.getElementById('step3').classList.add('active');
+    document.getElementById('svcLoader').style.display = 'block';
+
+    try {
+        let data;
+        const survey  = document.getElementById('s_survey')?.value  || '';
+        const district= document.getElementById('s_district')?.value || '';
+        const tehsil  = document.getElementById('s_tehsil')?.value  || '';
+        const village = document.getElementById('s_village')?.value  || '';
+        const khata   = document.getElementById('s_khata')?.value   || '';
+        const gata    = document.getElementById('s_gata')?.value    || '';
+        const owner   = document.getElementById('s_owner')?.value   || '';
+        const appid   = document.getElementById('s_appid')?.value   || '';
+        const aadhaar = document.getElementById('s_aadhaar')?.value || '';
+
+        const qp = new URLSearchParams({survey,district,tehsil,village,khata_no:khata,gata,owner});
+
+        const endpoints = {
+            khatauni:      `/api/services/khatauni?${qp}`,
+            khasra:        `/api/services/khasra?${qp}`,
+            patta:         `/api/services/patta?${qp}`,
+            a_register:    `/api/services/a_register?${qp}`,
+            verify_patta:  `/api/services/verify_patta?${qp}`,
+            poramboke:     `/api/services/poramboke?${qp}`,
+            fmb:           `/api/services/fmb?${qp}`,
+            tslr:          `/api/services/tslr?${qp}`,
+            fline:         `/api/services/fline?${qp}`,
+            dispute_status:`/api/services/dispute_status?${qp}`,
+            sale_status:   `/api/services/sale_status?${qp}`,
+            govt_land:     `/api/services/govt_land?district=${district}&tehsil=${tehsil}`,
+            app_status:    `/api/services/application_status?app_id=${encodeURIComponent(appid)}`,
+            owner_search:  `/api/services/search_by_owner?name=${encodeURIComponent(owner)}&district=${district}`,
+        };
+
+        if (type === 'patta_transfer') {
+            const payload = {
+                applicant_name:  document.getElementById('t_applicant')?.value,
+                applicant_phone: document.getElementById('t_phone')?.value,
+                applicant_aadhaar:document.getElementById('t_aadhaar')?.value,
+                survey_number:   survey,
+                district:        document.getElementById('t_district')?.value || district,
+                transfer_type:   document.getElementById('t_transfer_type')?.value,
+                new_owner_name:  document.getElementById('t_new_owner')?.value,
+            };
+            const res = await fetch('/api/services/patta_transfer', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+            data = await res.json();
+        } else if (type === 'aadhaar') {
+            const res = await fetch('/api/services/aadhaar_property', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({aadhaar})});
+            data = await res.json();
+        } else {
+            const res = await fetch(endpoints[type] || `/api/services/patta?${qp}`);
+            data = await res.json();
+        }
+
+        document.getElementById('svcLoader').style.display = 'none';
+        renderResult(type, data);
+
+    } catch(err) {
+        document.getElementById('svcLoader').style.display = 'none';
+        document.getElementById('resultPanel').innerHTML = `<div class="alert alert-danger">❌ Error fetching data. Please try again. (${err.message})</div>`;
+        document.getElementById('resultPanel').classList.add('show');
+    }
+}
+
+// ─────────────────────────────────────────
+//  RESULT RENDERERS
+// ─────────────────────────────────────────
+function renderResult(type, data) {
+    const panel = document.getElementById('resultPanel');
+    panel.classList.add('show');
+
+    if (data.error) {
+        panel.innerHTML = `<div class="alert alert-danger">❌ ${data.error}</div>`;
+        return;
+    }
+
+    const renderers = {
+        khatauni:      renderKhatauni,
+        khasra:        renderKhasra,
+        patta:         renderPatta,
+        a_register:    renderARegister,
+        verify_patta:  renderVerify,
+        poramboke:     renderPoramboke,
+        fmb:           renderFMB,
+        tslr:          renderTSLR,
+        fline:         renderFLine,
+        dispute_status:renderDisputeStatus,
+        sale_status:   renderSaleStatus,
+        govt_land:     renderGovtLand,
+        app_status:    renderAppStatus,
+        owner_search:  renderOwnerSearch,
+        aadhaar:       renderAadhaar,
+        patta_transfer:renderTransferResult,
+    };
+
+    (renderers[type] || renderPatta)(data, panel);
+}
+
+function docHeader(icon, docType, number, meta) {
+    return `<div class="doc-header">
+        <div class="doc-title">${icon} ${docType}</div>
+        <div class="doc-number">${number}</div>
+        <div class="doc-meta">${meta}</div>
+    </div>`;
+}
+
+function infoGrid(items) {
+    return `<div class="info-grid">${items.map(([label,val,cls=''])=>
+        `<div class="info-item"><div class="info-label">${label}</div><div class="info-value ${cls}">${val||'—'}</div></div>`
+    ).join('')}</div>`;
+}
+
+function statusPill(s) {
+    if (!s) return '—';
+    const map = { clear:'green', submitted:'blue', under_review:'amber', resolved:'green', disputed:'red', mortgaged:'amber', rejected:'red', escalated:'purple' };
+    const cls = map[s.toLowerCase()] || 'blue';
+    return `<span class="status-pill pill-${cls}">${s.toUpperCase()}</span>`;
+}
+
+function progressSteps(steps) {
+    return `<div class="progress-steps">${steps.map(s =>
+        `<div class="prog-step ${s.done?'done':''}">
+            <div class="prog-dot">${s.done?'✓':''}</div>
+            <div class="prog-label">${s.label}</div>
+        </div>`).join('')}</div>`;
+}
+
+function actionButtons(lat, lng, survey) {
+    const mapsUrl = lat && lng ? `https://www.google.com/maps?q=${lat},${lng}&z=17` : null;
+    return `<div class="modal-footer" style="padding:16px 0 0;border-top:1px solid rgba(255,255,255,0.08);margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-download btn-sm" onclick="alert('PDF download simulated — QR-signed certificate')">⬇ Download PDF</button>
+        <button class="btn btn-print btn-sm" onclick="window.print()">🖨 Print</button>
+        ${mapsUrl ? `<button class="btn btn-maps btn-sm" onclick="window.open('${mapsUrl}','_blank')">🗺 Open in Google Maps</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+    </div>`;
+}
+
+function renderKhatauni(d, panel) {
+    const k = d;
+    panel.innerHTML = docHeader('📜','Khatauni (Rights Record)', k.khatauni_number, `Gata: ${k.gata_number} | Unique Code: ${k.unique_code} | Fasli Year: ${k.fasli_year}`)
+    + infoGrid([
+        ['District', k.district], ['Tehsil', k.tehsil], ['Village/Pargana', k.pargana], ['Survey No.', k.survey_number],
+        ['Area (Acres)', k.area_acres], ['Area (Hectares)', k.area_hectares], ['Area (Bigha)', k.area_bigha],
+        ['Land Type', k.land_type], ['Land Use', k.land_use], ['Status', statusPill(k.status)],
+        ['Market Value', fmtINR(k.market_value)], ['Land Revenue', `₹${k.land_revenue}`],
+        ['Water Tax', `₹${k.water_tax}`], ['Revenue Liabilities', `₹${k.revenue_liabilities}`],
+        ['Disputed', k.is_disputed ? '<span class="status-pill pill-red">YES</span>' : '<span class="status-pill pill-green">NO</span>'],
+        ['Mortgaged', k.is_mortgaged ? '<span class="status-pill pill-amber">YES</span>' : '<span class="status-pill pill-green">NO</span>'],
+    ])
+    + `<div class="section-title">Rights Holders</div>
+    <table class="owner-table"><thead><tr><th>Name</th><th>Share</th><th>From</th><th>To</th><th>Type</th><th>Deed No.</th><th>Amount</th></tr></thead>
+    <tbody>${(k.rights_holders||[]).map(h=>`<tr>
+        <td style="font-weight:600;">${h.name}</td><td>${h.share}</td>
+        <td>${fmtDate(h.from_date)}</td><td>${h.to_date==='Present'?'<span class="status-pill pill-green">Present</span>':fmtDate(h.to_date)}</td>
+        <td>${h.transfer_type}</td><td><code style="font-size:0.75rem;">${h.deed_number}</code></td>
+        <td>${h.amount?fmtINR(h.amount):'—'}</td>
+    </tr>`).join('')}</tbody></table>
+    <div style="margin-top:16px;padding:12px;background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);border-radius:8px;font-size:0.78rem;color:#86efac;">
+        ✅ Certified Copy Available | QR Code: <code style="font-size:0.72rem;">${k.qr_code}</code> | Issued by: ${k.issued_by} on ${k.issued_date}
+    </div>`
+    + actionButtons(k.latitude, k.longitude, k.survey_number);
+}
+
+function renderKhasra(d, panel) {
+    panel.innerHTML = docHeader('🌾','Khasra / Gata Details', `Gata No. ${d.gata_number}`, `Unique Code: ${d.unique_code} | Revenue Village: ${d.revenue_village_code}`)
+    + infoGrid([
+        ['District', d.district], ['Tehsil', d.tehsil], ['Village', d.village], ['Survey No.', d.survey_number],
+        ['Area (Acres)', d.area_acres], ['Area (Bigha)', d.area_bigha], ['Area (Biswa)', d.area_biswa],
+        ['Land Type', d.land_type], ['Chaura No.', d.chaura_number], ['Khata No.', d.khata_number],
+        ['Owner', d.owner_name], ['Co-sharers', d.co_sharers], ['Cultivation', d.cultivation_type],
+        ['Irrigation', d.irrigation_source], ['Crop Season', d.crop_season],
+        ['Status', statusPill(d.status)],
+        ['Disputed', d.is_disputed ? '<span class="status-pill pill-red">YES</span>' : '<span class="status-pill pill-green">NO</span>'],
+        ['Sale Pending', d.is_sale_pending ? '<span class="status-pill pill-amber">YES</span>' : '<span class="status-pill pill-green">NO</span>'],
+        ['Mutation Pending', d.mutation_pending ? '<span class="status-pill pill-amber">YES</span>' : '<span class="status-pill pill-green">NO</span>'],
+        ['Market Value', fmtINR(d.market_value)], ['Circle Rate', fmtINR(d.circle_rate)],
+    ])
+    + renderBoundaryDiagram(d.boundaries, d.survey_number, d.area_acres)
+    + actionButtons(null, null, d.survey_number);
+}
+
+function renderPatta(d, panel) {
+    const p = d.patta || d;
+    panel.innerHTML = docHeader('📋','Patta / Chitta Document', `Patta No. ${p.patta_number}`, `Survey: ${p.survey_number} | Issued: ${p.issued_date} | Valid till: ${p.valid_till}`)
+    + infoGrid([
+        ['District', p.district], ['Taluk', p.taluk], ['Village', p.village],
+        ['Owner Name', p.owner_name], ['Area (Acres)', p.area_acres], ['Area (Hectares)', p.area_hectares], ['Area (Cents)', p.area_cents],
+        ['Land Type', p.land_type], ['Classification', p.classification], ['Land Use', p.land_use],
+        ['Water Source', p.water_source], ['Soil Type', p.soil_type],
+        ['Market Value', fmtINR(p.market_value)], ['Govt Value', fmtINR(p.govt_value)],
+        ['Status', statusPill(p.status)], ['Encumbrance', p.encumbrance],
+    ])
+    + renderBoundaryDiagram({North:p.north_boundary,South:p.south_boundary,East:p.east_boundary,West:p.west_boundary}, p.survey_number, p.area_acres)
+    + actionButtons(p.latitude, p.longitude, p.survey_number);
+}
+
+function renderARegister(d, panel) {
+    const r = d.register;
+    panel.innerHTML = docHeader('📓','A-Register Extract', `Patta No. ${r.patta_number}`, `Serial: ${r.serial_number} | Fasli Year: ${r.fasli_year} | Mutation: ${r.mutation_number}`)
+    + `<div class="alert alert-info">📋 Patta Type: <strong>${r.patta_type}</strong> | Natham Type: <strong>${r.natham_type}</strong></div>`
+    + `<table class="owner-table"><thead><tr><th>Column</th><th>Value</th></tr></thead><tbody>${
+        (r.entries||[]).map(e=>`<tr><td style="color:var(--text-muted);">${e.column}</td><td style="font-weight:600;">${e.value}</td></tr>`).join('')
+    }</tbody></table>`
+    + infoGrid([
+        ['Annual Assessment', `₹${r.assessment_value}`], ['Land Revenue', `₹${r.land_revenue}`],
+        ['Kist Amount', `₹${r.kist_amount}`], ['Tahsildar', r.tahsildar_office],
+    ])
+    + actionButtons(r.latitude, r.longitude, r.survey_number);
+}
+
+function renderVerify(d, panel) {
+    panel.innerHTML = `<div class="alert alert-success" style="font-size:1rem;">✅ <strong>${d.message}</strong></div>`
+    + infoGrid([
+        ['Patta Number', d.patta_number], ['Survey No.', d.survey_number], ['Owner Name', d.owner_name],
+        ['District', d.district], ['Area (Acres)', d.area_acres], ['Status', statusPill(d.status)],
+        ['Last Verified', fmtDate(d.last_verified)], ['Digital Signature', `<code style="font-size:0.7rem;">${d.digital_signature}</code>`],
+    ])
+    + `<div style="margin-top:16px;padding:14px;background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);border-radius:10px;font-size:0.8rem;color:#86efac;">
+        🔒 QR Verification Code: <code>${d.qr_code}</code>
+    </div>` + actionButtons(null,null,d.survey_number);
+}
+
+function renderPoramboke(d, panel) {
+    const cls = d.is_poramboke ? 'alert-danger' : 'alert-success';
+    const msg = d.is_poramboke ? `⚠️ This land is classified as <strong>${d.land_category}</strong>. Private use is prohibited.`
+                               : `✅ This land is <strong>${d.land_category}</strong>. Suitable for private transactions.`;
+    panel.innerHTML = `<div class="alert ${cls}">${msg}</div>`
+    + infoGrid([
+        ['Survey No.', d.survey_number], ['District', d.district], ['Village', d.village],
+        ['Land Category', d.land_category], ['Ownership', d.ownership_type],
+        ['Poramboke Type', d.poramboke_type], ['Encroachment', d.encroachment_status === 'Encroached' ? '<span class="status-pill pill-red">ENCROACHED</span>' : '<span class="status-pill pill-green">CLEAR</span>'],
+        ['Area (Acres)', d.area_acres], ['Classification', d.classification],
+        ['Verified By', d.verified_by], ['Verified On', fmtDate(d.verified_date)],
+    ])
+    + `<div style="margin-top:16px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.82rem;color:var(--text-muted);">
+        📋 Remarks: ${d.remarks}
+    </div>` + actionButtons(null,null,d.survey_number);
+}
+
+function renderFMB(d, panel) {
+    panel.innerHTML = docHeader('📐','FMB Sketch', d.book_number, `Scale: ${d.scale} | Survey: ${d.survey_number} | Bearing: ${d.north_bearing}`)
+    + infoGrid([
+        ['District', d.district], ['Village', d.village], ['Taluk', d.taluk],
+        ['Area (Acres)', d.area_acres], ['Area (Hectares)', d.area_hectares],
+        ['Scale', d.scale], ['Perimeter (m)', d.perimeter_m], ['North Bearing', d.north_bearing],
+        ['Surveyor', d.surveyor], ['Survey Date', fmtDate(d.survey_date)],
+    ])
+    + renderBoundaryDiagram(d.boundaries, d.survey_number, d.area_acres)
+    + `<div class="section-title">Corner Coordinates</div>
+    <table class="owner-table"><thead><tr><th>Point</th><th>Easting (m)</th><th>Northing (m)</th></tr></thead>
+    <tbody>${(d.corners||[]).map(c=>`<tr><td><strong>Point ${c.point}</strong></td><td>${c.easting}</td><td>${c.northing}</td></tr>`).join('')}
+    </tbody></table>` + actionButtons(null,null,d.survey_number);
+}
+
+function renderTSLR(d, panel) {
+    panel.innerHTML = docHeader('🏙️','TSLR Extract — Urban', d.tslr_number, `Plot No. ${d.plot_number} | Ward: ${d.ward_number} | Block: ${d.block_number}`)
+    + infoGrid([
+        ['District', d.district], ['Taluk', d.taluk], ['Village/Town', d.village],
+        ['Street', d.street_name], ['Door No.', d.door_number],
+        ['Area (Sq.Ft)', d.area_sqft], ['Area (Sq.m)', d.area_sqm],
+        ['Land Use', d.land_use_type], ['Building Use', d.building_use],
+        ['FSI', d.floor_space_index], ['Tax Zone', d.property_tax_zone], ['Municipal Ward', d.municipal_ward],
+        ['Water Connection', d.water_connection], ['Electricity', d.electricity_connection], ['Drain', d.drain_connection],
+        ['Market Value', fmtINR(d.market_value)], ['Guidance Value', fmtINR(d.guidance_value)],
+        ['Issued By', d.issued_by], ['Issue Date', fmtDate(d.issued_date)],
+    ]) + actionButtons(null,null,d.survey_number);
+}
+
+function renderFLine(d, panel) {
+    panel.innerHTML = docHeader('📏','F-Line Sketch / Statement', d.fline_number, `Survey: ${d.survey_number} | Total Length: ${d.total_length_m}m | Bearing: ${d.bearing}`)
+    + infoGrid([
+        ['District', d.district], ['Village', d.village],
+        ['Area (Sq.Ft)', d.area_sqft], ['Area (Acres)', d.area_acres],
+        ['Surveyor', d.surveyor], ['Survey Date', fmtDate(d.survey_date)], ['Office', d.office],
+    ])
+    + `<div class="section-title">Field Lines</div>
+    <table class="owner-table"><thead><tr><th>Line</th><th>Length (m)</th><th>Bearing</th><th>Left Boundary</th><th>Right Boundary</th></tr></thead>
+    <tbody>${(d.field_lines||[]).map(l=>`<tr>
+        <td><strong>${l.line}</strong></td><td>${l.length_m}</td><td>${l.bearing}</td><td>${l.left}</td><td>${l.right}</td>
+    </tr>`).join('')}</tbody></table>`
+    + renderBoundaryDiagram(d.boundaries?.boundaries||{
+        North: d.field_lines?.[0]?.left, South: d.field_lines?.[2]?.left,
+        East: d.field_lines?.[1]?.left, West: d.field_lines?.[3]?.left
+    }, d.survey_number, d.area_acres)
+    + actionButtons(null,null,d.survey_number);
+}
+
+function renderDisputeStatus(d, panel) {
+    const cls = d.is_disputed ? 'alert-danger' : 'alert-success';
+    panel.innerHTML = `<div class="alert ${cls}">⚖️ <strong>${d.status_label}</strong></div>`
+    + progressSteps(d.progress)
+    + infoGrid([
+        ['Survey No.', d.survey_number], ['District', d.district], ['Village', d.village],
+        ['Dispute Type', d.dispute_type], ['Case No.', d.case_number], ['Court', d.court],
+        ['Filed Date', fmtDate(d.filed_date)], ['Next Hearing', fmtDate(d.next_hearing)],
+        ['Plaintiff', d.parties?.plaintiff], ['Defendant', d.parties?.defendant],
+        ['Can Transfer?', d.can_transfer ? '<span class="status-pill pill-green">YES</span>' : '<span class="status-pill pill-red">NO — Restricted</span>'],
+    ])
+    + `<div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.82rem;color:var(--text-muted);">📋 ${d.remarks}</div>`
+    + actionButtons(null,null,d.survey_number);
+}
+
+function renderSaleStatus(d, panel) {
+    const cls = d.is_sale_pending ? 'alert-warn' : 'alert-success';
+    panel.innerHTML = `<div class="alert ${cls}">💰 <strong>${d.sale_status}</strong></div>`
+    + infoGrid([
+        ['Survey No.', d.survey_number], ['District', d.district], ['Village', d.village],
+        ['Current Owner', d.current_owner], ['Market Value', fmtINR(d.market_value)],
+        ['Encumbrance', d.encumbrance],
+        ...(d.is_sale_pending ? [
+            ['Buyer Name', d.buyer_name], ['Agreed Value', fmtINR(d.agreed_value)],
+            ['Agreement Date', fmtDate(d.sale_agreement_date)], ['Registration Due', fmtDate(d.registration_due_by)],
+        ] : []),
+        ['Last Sale Amount', fmtINR(d.last_sale_amount)], ['Last Sale Date', fmtDate(d.last_sale_date)],
+        ['Last Sale Type', d.last_sale_type], ['Total Transactions', d.total_transactions],
+        ['Can Register?', d.can_register ? '<span class="status-pill pill-green">YES</span>' : '<span class="status-pill pill-red">NO</span>'],
+    ])
+    + `<div class="section-title">Sale History</div>
+    <table class="owner-table"><thead><tr><th>Seller</th><th>Date</th><th>Type</th><th>Deed No.</th><th>Amount</th></tr></thead>
+    <tbody>${(d.sale_history||[]).map(h=>`<tr>
+        <td>${h.seller}</td><td>${fmtDate(h.date)}</td><td>${h.type}</td>
+        <td><code style="font-size:0.72rem;">${h.deed_no}</code></td><td>${h.amount?fmtINR(h.amount):'—'}</td>
+    </tr>`).join('')}</tbody></table>`
+    + actionButtons(null,null,d.survey_number);
+}
+
+function renderGovtLand(d, panel) {
+    panel.innerHTML = `<div class="alert alert-info">🏕️ Showing ${d.total} parcels for ${d.district||'All Districts'} — ${d.tehsil||'All Tehsils'}</div>
+    <table class="owner-table">
+        <thead><tr><th>Survey No.</th><th>Village</th><th>Area</th><th>Category</th><th>Encroachment</th><th>Dept</th><th>Map</th></tr></thead>
+        <tbody>${(d.results||[]).map(r=>`<tr>
+            <td style="font-weight:600;">${r.survey_number}</td>
+            <td>${r.village}</td><td>${r.area_acres} ac</td>
+            <td><span class="status-pill ${r.land_category.includes('Govt')?'pill-amber':'pill-green'}">${r.land_category}</span></td>
+            <td><span class="status-pill ${r.encroachment==='Yes'?'pill-red':'pill-green'}">${r.encroachment}</span></td>
+            <td>${r.govt_dept}</td>
+            <td><a href="https://www.google.com/maps?q=${r.latitude},${r.longitude}&z=17" target="_blank" style="color:#60a5fa;font-size:0.75rem;">🗺 Map</a></td>
+        </tr>`).join('')}</tbody>
+    </table>` + actionButtons(null,null,'');
+}
+
+function renderAppStatus(d, panel) {
+    const statusColors = { 'Under Process':'blue','Verified':'blue','Approved':'green','Pending Documents':'amber','Rejected':'red','submitted':'blue','under_review':'amber','resolved':'green','rejected':'red','escalated':'purple' };
+    const cls = statusColors[d.status] || 'blue';
+    panel.innerHTML = `<div class="alert alert-${cls==='green'?'success':cls==='red'?'danger':cls==='amber'?'warn':'info'}">
+        🔍 Application <code>${d.app_id}</code> — <strong>${d.status?.toUpperCase()}</strong>
+    </div>`
+    + progressSteps(d.steps||[])
+    + infoGrid([
+        ['Application ID', d.app_id], ['Application Type', d.app_type], ['Status', statusPill(d.status)],
+        ['Filed Date', fmtDate(d.filed_date)], ['Last Updated', fmtDate(d.last_update)],
+        ['Resolved', d.resolved_date ? fmtDate(d.resolved_date) : '—'],
+        ['Priority', d.priority ? `<span class="status-pill pill-${d.priority==='high'?'red':d.priority==='medium'?'amber':'green'}">${d.priority?.toUpperCase()}</span>` : '—'],
+        ['Category', d.category||'—'], ['Subject', d.subject||'—'],
+    ])
+    + `<div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.82rem;color:var(--text-muted);">📋 Remarks: ${d.remarks||'No remarks yet.'}</div>`
+    + actionButtons(null,null,'');
+}
+
+function renderOwnerSearch(d, panel) {
+    panel.innerHTML = `<div class="alert alert-info">👤 Found ${d.total} properties matching "<strong>${d.query}</strong>"</div>
+    <table class="owner-table">
+        <thead><tr><th>Survey No.</th><th>Owner</th><th>District</th><th>Village</th><th>Area</th><th>Type</th><th>Value</th><th>Status</th><th>Map</th></tr></thead>
+        <tbody>${(d.results||[]).map(r=>`<tr>
+            <td style="font-weight:600;">${r.survey_number}</td>
+            <td>${r.owner_name}</td><td>${r.district}</td><td>${r.village}</td>
+            <td>${r.area_acres} ac</td><td>${r.land_type}</td>
+            <td>${fmtINR(r.market_value)}</td>
+            <td>${statusPill(r.status)}</td>
+            <td><a href="https://www.google.com/maps?q=${r.latitude},${r.longitude}&z=17" target="_blank" style="color:#60a5fa;font-size:0.75rem;">🗺</a></td>
+        </tr>`).join('')}</tbody>
+    </table>` + actionButtons(null,null,'');
+}
+
+function renderAadhaar(d, panel) {
+    panel.innerHTML = `<div class="alert alert-success">🆔 Found ${d.total_properties} propert${d.total_properties!==1?'ies':'y'} linked to Aadhaar ${d.aadhaar}</div>
+    <div class="info-item" style="margin-bottom:16px;"><div class="info-label">Owner Name</div><div class="info-value">${d.owner_name}</div></div>
+    <table class="owner-table">
+        <thead><tr><th>Survey No.</th><th>District</th><th>Village</th><th>Area</th><th>Type</th><th>Value</th><th>Status</th></tr></thead>
+        <tbody>${(d.properties||[]).map(p=>`<tr>
+            <td style="font-weight:600;">${p.survey_number}</td><td>${p.district}</td><td>${p.village}</td>
+            <td>${p.area_acres} ac</td><td>${p.land_type}</td>
+            <td>${fmtINR(p.market_value)}</td><td>${statusPill(p.status)}</td>
+        </tr>`).join('')}</tbody>
+    </table>` + actionButtons(null,null,'');
+}
+
+function renderTransferResult(d, panel) {
+    panel.innerHTML = `<div class="alert alert-success">✅ ${d.message}</div>
+    <div class="doc-header">
+        <div class="doc-title">📤 Patta Transfer Application</div>
+        <div class="doc-number">${d.application_id}</div>
+        <div class="doc-meta">Status: ${d.status} | Estimated: ${d.estimated_days} working days</div>
+    </div>`
+    + infoGrid([
+        ['Applicant', d.applicant_name], ['Survey No.', d.survey_number], ['District', d.district],
+        ['Village', d.parcel_village], ['Transfer Type', d.transfer_type], ['New Owner', d.new_owner],
+    ])
+    + `<div class="section-title">Documents Required</div>
+    <ul style="list-style:none;padding:0;">${(d.documents_required||[]).map(doc=>
+        `<li style="padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:6px;font-size:0.82rem;color:var(--text-muted);">📄 ${doc}</li>`
+    ).join('')}</ul>
+    <div class="alert alert-warn" style="margin-top:12px;">📋 Next Step: ${d.next_step}</div>`
+    + actionButtons(null,null,'');
+}
+
+function renderBoundaryDiagram(b, surveyNo, area) {
+    if (!b || !b.North) return '';
+    return `<div class="section-title">Boundary Diagram</div>
+    <div class="boundary-diagram">
+        <div class="bound-north">⬆ NORTH: ${b.North}</div>
+        <div class="bound-east">⬅ WEST<br>${b.West}</div>
+        <div class="bound-center">
+            <div style="font-size:0.65rem;color:var(--text-muted);">SURVEY NO.</div>
+            <div style="font-weight:800;font-size:0.9rem;">${surveyNo}</div>
+            <div style="font-size:0.72rem;color:#60a5fa;margin-top:4px;">${area} Acres</div>
+        </div>
+        <div class="bound-west">EAST ➡<br>${b.East}</div>
+        <div class="bound-south">⬇ SOUTH: ${b.South}</div>
+    </div>`;
+}
+
+async function fetchAndShowLandTypes() {
+    document.getElementById('svcModalBody').innerHTML = `<div class="loader" style="display:block;"><div class="spinner"></div></div>`;
+    const r = await fetch('/api/services/land_types');
+    const d = await r.json();
+    document.getElementById('svcModalBody').innerHTML = `
+    <div class="alert alert-info">📋 There are <strong>${d.land_types.length}</strong> official land type classifications in Indian revenue records.</div>
+    <div class="land-type-grid">${d.land_types.map(lt=>`
+        <div class="land-type-card">
+            <div class="lt-code">Code ${lt.code}</div>
+            <div class="lt-name">${lt.name}</div>
+            <div class="lt-desc">${lt.description}</div>
+        </div>`).join('')}</div>`;
+}
+
+function showBenefitsFAQ() {
+    document.getElementById('svcModalBody').innerHTML = `
+    <div class="alert alert-success">✔ Checking land records online saves time, prevents fraud and ensures transparency in land transactions.</div>
+
+    <div class="section-title">How to Check Land Records</div>
+    <div class="benefit-item"><div class="benefit-icon">1️⃣</div><div class="security-text"><strong>Select your State</strong> — Use the services above for your region (TN, UP, Karnataka, Maharashtra etc.)</div></div>
+    <div class="benefit-item"><div class="benefit-icon">2️⃣</div><div class="security-text"><strong>Choose District, Tehsil/Block, Village</strong> — Use the cascading dropdown to narrow down the location.</div></div>
+    <div class="benefit-item"><div class="benefit-icon">3️⃣</div><div class="security-text"><strong>Choose Search Method</strong> — Search by Owner Name, Khata Number, Survey/Plot Number, or Aadhaar-linked property.</div></div>
+    <div class="benefit-item"><div class="benefit-icon">4️⃣</div><div class="security-text"><strong>Enter Captcha and Submit</strong> — Enter the security captcha to prevent automated queries.</div></div>
+    <div class="benefit-item"><div class="benefit-icon">5️⃣</div><div class="security-text"><strong>View and Download</strong> — See owner info, survey number, property map, area, classification, revenue liabilities and download as PDF.</div></div>
+
+    <div class="section-title">Benefits</div>
+    <div class="benefit-item"><div class="benefit-icon">✔</div><div class="security-text">Avoids fraud during land purchase — verify before signing</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✔</div><div class="security-text">Saves time and travel to government offices</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✔</div><div class="security-text">Helps verify ownership before registry</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✔</div><div class="security-text">Helpful for bank loans and legal compliance</div></div>
+    <div class="benefit-item"><div class="benefit-icon">✔</div><div class="security-text">Supports transparency in land transactions</div></div>
+
+    <div class="section-title">Common Issues</div>
+    <table class="issue-table">
+        <thead><tr><th>Issue</th><th>Solution</th></tr></thead>
+        <tbody>
+            <tr><td>Name mismatch</td><td>Apply online correction (mutation/correction portal)</td></tr>
+            <tr><td>Old records missing</td><td>Visit revenue office for manual entry digitization</td></tr>
+            <tr><td>Map not showing</td><td>Check Bhunaksha portal separately for GIS maps</td></tr>
+            <tr><td>Server down</td><td>Try during non-peak hours (early morning)</td></tr>
+            <tr><td>Aadhaar not linked</td><td>Visit nearest CSC or tehsil office to link</td></tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">Frequently Asked Questions</div>
+    ${[
+        ['Is checking land records online free?', 'Yes, most states offer land record viewing free of cost. A small fee may apply for certified downloadable copies.'],
+        ['Are online land records legally valid?', 'Yes — if the document contains a QR code, digital seal, or official signature.'],
+        ['Can I check land details using a mobile phone?', 'Yes, most portals are mobile-friendly. You can also use UMANG and state-specific mobile apps.'],
+        ['Can I check agricultural land records online?', 'Yes — agricultural as well as non-agricultural land details are available online.'],
+        ['Will online records show pending disputes?', 'Some states show it; others require checking with local Tehsil. Our portal shows dispute status directly.'],
+        ['Can NRIs check land ownership online?', 'Yes — online access works globally from any country.'],
+        ['How often are land records updated online?', 'Records are updated after mutation, sale deed registration, or revenue update cycles.'],
+        ['Are land maps available online?', 'Yes — through Bhunaksha GIS Maps in many states. Click "Open in Google Maps" on any record.'],
+        ['What if the data displayed online is wrong?', 'File a correction grievance online or visit the revenue office with your original documents.'],
+        ['What is Patta vs Khatauni?', 'Patta is a Tamil Nadu document proving ownership. Khatauni (UP Bhulekh) is a rights record for Uttar Pradesh. Both serve similar purposes in their respective states.'],
+    ].map(([q,a])=>`
+        <div class="faq-item">
+            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+                ${q} <span class="faq-arrow">▾</span>
+            </div>
+            <div class="faq-a">${a}</div>
+        </div>`).join('')}`;
+}
+
+// ─────────────────────────────────────────
+//  OPEN SERVICE MODAL
+// ─────────────────────────────────────────
+function openServiceModal(type, label, icon) {
+    document.getElementById('svcModalTitle').textContent = `${icon} ${label}`;
+    document.getElementById('svcModalSub').textContent = 'BhoomiSeva Land Services Portal — Free, No API Key Required';
+    document.getElementById('svcModalBody').innerHTML = '<div class="loader" style="display:block;"><div class="spinner"></div></div>';
+    document.getElementById('svcModal').classList.add('active');
+
+    // Also load transfer district dropdown if needed
+    setTimeout(() => {
+        buildSearchForm(type, label, icon);
+        if (type === 'patta_transfer') {
+            loadDistricts('t_district');
+        }
+    }, 100);
+}
+</script>
+</body>
+</html>

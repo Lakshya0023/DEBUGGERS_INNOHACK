@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Records - BhoomiSeva</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Base Styles and layout adjustments for specific page needs */
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #1e293b;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: background-color 0.2s, color 0.2s;
+            gap: 12px;
+        }
+
+        .nav-link:hover {
+            background-color: #334155;
+            color: white;
+        }
+
+        .nav-link.active {
+            background-color: #2563eb;
+            color: white;
+            border-left: 4px solid #60a5fa;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .site-header {
+            background: white;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .site-title {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #0f172a;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-content {
+            padding: 2rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-bar {
+            padding: 0.6rem 1rem;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 6px;
+            min-width: 250px;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            font-size: 0.9rem;
+        }
+        .search-bar:focus {
+            outline: none !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.15) !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+        }
+
+        .filter-select {
+            padding: 0.6rem;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 6px;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .filter-select option {
+            background: #ffffff !important;
+            color: #0f172a !important;
+        }
+
+        /* Data Table */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .data-table th, .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .badge-clear { background: #dcfce7; color: #166534; }
+        .badge-disputed { background: #fee2e2; color: #991b1b; }
+        .badge-mortgaged { background: #fef9c3; color: #854d0e; }
+        .badge-residential { background: #e0e7ff; color: #3730a3; }
+        .badge-commercial { background: #f3e8ff; color: #6b21a8; }
+        .badge-agricultural { background: #dcfce7; color: #166534; }
+        .badge-industrial { background: #ffedd5; color: #9a3412; }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #cbd5e1;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+        }
+
+        .page-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .modal-body {
+            padding: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+            padding: 0 1.5rem;
+        }
+
+        .tab-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #0f172a;
+        }
+
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .tab-content {
+            padding: 1.5rem;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Grid layouts */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .kpi-card {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .kpi-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 0.25rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #2563eb;
+        }
+
+        .timeline-date {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-content {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Action Buttons */
+        .modal-actions {
+            padding: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            background: #f8fafc;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-outline {
+            background: white;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        .btn-outline:hover {
+            background: #f1f5f9;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Helper for loader */
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+        
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            🌍 BhoomiSeva
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+                Home
+            </a>
+            <a href="map.html" class="nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" /></svg>
+                Map Explorer
+            </a>
+            <a href="records.html" class="nav-link active">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+                Land Records
+            </a>
+            <a href="grievance.html" class="nav-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z" /></svg>
+                Grievances
+            </a>
+            <a href="admin.html" class="nav-link" id="adminLink" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                Admin Dashboard
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="site-header">
+            <h2 class="site-title">Land Records Directory</h2>
+            <div class="user-profile">
+                <span>👤</span>
+                <span id="userNameDisplay">Guest</span>
+            </div>
+        </header>
+
+        <div class="page-content">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="Search Survey No, Owner, Village...">
+                    
+                    <select id="districtFilter" class="filter-select">
+                        <option value="">All Districts</option>
+                        <option value="Bengaluru Urban">Bengaluru Urban</option>
+                        <option value="Bengaluru Rural">Bengaluru Rural</option>
+                        <option value="Delhi">Delhi</option>
+                        <option value="North Delhi">North Delhi</option>
+                        <option value="South Delhi">South Delhi</option>
+                        <option value="East Delhi">East Delhi</option>
+                        <option value="West Delhi">West Delhi</option>
+                        <option value="Chennai">Chennai</option>
+                        <option value="Mumbai">Mumbai</option>
+                        <option value="Mumbai Suburban">Mumbai Suburban</option>
+                        <option value="Vellore">Vellore</option>
+                        <option value="Hyderabad">Hyderabad</option>
+                        <option value="Pune">Pune</option>
+                        <option value="Ahmedabad">Ahmedabad</option>
+                        <option value="Kolkata">Kolkata</option>
+                        <option value="Jaipur">Jaipur</option>
+                    </select>
+
+                    <select id="typeFilter" class="filter-select">
+                        <option value="">All Land Types</option>
+                        <option value="Agricultural">Agricultural</option>
+                        <option value="Residential">Residential</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Industrial">Industrial</option>
+                    </select>
+
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="clear">Clear</option>
+                        <option value="disputed">Disputed</option>
+                        <option value="mortgaged">Mortgaged</option>
+                    </select>
+                </div>
+                <div>
+                    <span id="resultsCount">0 Results Found</span>
+                </div>
+            </div>
+
+            <!-- Data Table Card -->
+            <div class="card">
+                <div id="tableLoader" class="loader">Loading records...</div>
+                <div class="table-responsive">
+                    <table class="data-table" id="recordsTable">
+                        <thead>
+                            <tr>
+                                <th>Survey No.</th>
+                                <th>Village/District</th>
+                                <th>Area (Acres)</th>
+                                <th>Land Type</th>
+                                <th>Status</th>
+                                <th>Current Owner</th>
+                                <th>Market Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                    <div id="emptyState" class="empty-state">
+                        No records found matching your filters.
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination" id="paginationControls">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Full Details -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span id="modalSurveyNo">Survey No. ---</span>
+                    <span id="modalStatusBadge" class="badge">---</span>
+                </h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
+                    <button class="tab-btn" data-tab="history" onclick="switchTab('history')">Ownership History</button>
+                    <button class="tab-btn" data-tab="price" onclick="switchTab('price')">Price History</button>
+                    <button class="tab-btn" data-tab="ml" onclick="switchTab('ml')" style="color:#2563eb;font-weight:700;">🤖 AI/ML Forecast</button>
+                    <button class="tab-btn" data-tab="location" onclick="switchTab('location')">📍 Location</button>
+                    <button class="tab-btn" data-tab="grievances" onclick="switchTab('grievances')">Grievances</button>
+                </div>
+
+                <div class="tab-content">
+                    <div id="modalLoader" class="loader">Loading details...</div>
+                    
+                    <!-- Overview Tab -->
+                    <div id="tab-overview" class="tab-panel active">
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-label">District</div>
+                                <div class="kpi-value" id="moDistrict">-</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Taluk</div>
+                                <div class="kpi-value" id="moTaluk">-</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Village</div>
+                                <div class="kpi-value" id="moVillage">-</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Area (Acres)</div>
+                                <div class="kpi-value" id="moArea">-</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Land Type</div>
+                                <div class="kpi-value" id="moType">-</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Land Use</div>
+                                <div class="kpi-value" id="moUse">-</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Encumbrance</div>
+                                <div class="kpi-value" id="moEncumbrance">-</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-label">Coordinates</div>
+                                <div class="kpi-value" id="moCoords" style="font-size:0.9rem;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ownership History Tab -->
+                    <div id="tab-history" class="tab-panel">
+                        <div class="timeline" id="ownershipTimeline">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Price History Tab -->
+                    <div id="tab-price" class="tab-panel">
+                        <div class="chart-container">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- AI/ML Regression & Valuation Forecast Tab -->
+                    <div id="tab-ml" class="tab-panel">
+                        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 1.25rem; border-radius: 10px; margin-bottom: 1.25rem; box-shadow: 0 4px 15px rgba(30, 58, 138, 0.25);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #93c5fd; font-weight: 700;">AI Machine Learning Regression Engine</span>
+                                    <h3 style="margin: 4px 0 0 0; font-size: 1.15rem; font-weight: 700;" id="mlModelHeading">BhoomiML Multi-Factor Regression v2.4</h3>
+                                </div>
+                                <div>
+                                    <span class="badge" id="mlRiskBadge" style="background: #22c55e; color: #ffffff; font-weight: 700; font-size: 0.85rem; padding: 4px 12px;">Low Risk Asset</span>
+                                </div>
+                            </div>
+                            <p style="margin: 8px 0 0 0; font-size: 0.85rem; color: #cbd5e1;" id="mlRecommendation">Strong Buy / High Long-Term Capital Appreciation</p>
+                        </div>
+
+                        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                            <div class="kpi-card" style="padding: 1rem;">
+                                <div class="kpi-label">Annual Growth (CAGR)</div>
+                                <div class="kpi-value" id="mlCagr" style="color: #16a34a; font-size: 1.2rem;">+12.4% / yr</div>
+                            </div>
+                            <div class="kpi-card" style="padding: 1rem;">
+                                <div class="kpi-label">Model Fit (R² Score)</div>
+                                <div class="kpi-value" id="mlR2" style="color: #2563eb; font-size: 1.2rem;">98.4% Accuracy</div>
+                            </div>
+                            <div class="kpi-card" style="padding: 1rem;">
+                                <div class="kpi-label">3-Yr Projected (2028)</div>
+                                <div class="kpi-value" id="mlProj3Yr" style="color: #0f172a; font-size: 1.2rem;">-</div>
+                                <small id="mlRoi3Yr" style="color: #16a34a; font-weight: 700; font-size: 0.8rem;">+42% ROI</small>
+                            </div>
+                            <div class="kpi-card" style="padding: 1rem;">
+                                <div class="kpi-label">5-Yr Projected (2030)</div>
+                                <div class="kpi-value" id="mlProj5Yr" style="color: #0f172a; font-size: 1.2rem;">-</div>
+                                <small id="mlRoi5Yr" style="color: #16a34a; font-weight: 700; font-size: 0.8rem;">+85% ROI</small>
+                            </div>
+                            <div class="kpi-card" style="padding: 1rem;">
+                                <div class="kpi-label">Rate (₹ / Sq.Ft.)</div>
+                                <div class="kpi-value" id="mlRateSqft" style="color: #7c3aed; font-size: 1.2rem;">-</div>
+                            </div>
+                            <div class="kpi-card" style="padding: 1rem;">
+                                <div class="kpi-label">Investment Rating</div>
+                                <div class="kpi-value" id="mlScore" style="color: #d97706; font-size: 1.2rem;">88 / 100</div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Simulation Controller -->
+                        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+                                <span style="font-weight: 700; font-size: 0.95rem; color: #1e293b;">⚡ Dynamic Simulation & Time Horizon Modeler</span>
+                                <span class="badge" style="background:#e0e7ff;color:#3730a3;font-weight:700;">Live Real-Time Extrapolation</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end;">
+                                <div>
+                                    <label style="display:block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Forecast Horizon: <strong id="simHorizonLabel" style="color:#2563eb;">10 Years</strong></label>
+                                    <input type="range" id="simHorizonInput" min="1" max="25" value="10" style="width: 100%; cursor: pointer;" oninput="document.getElementById('simHorizonLabel').textContent = this.value + ' Years';">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 4px;">Development Corridor Factor</label>
+                                    <select id="simDevFactor" class="filter-select" style="width: 100%;">
+                                        <option value="1.0">Standard Baseline Market Growth (1.0x)</option>
+                                        <option value="1.15">🚇 Metro & Expressway Corridor (+15% Velocity)</option>
+                                        <option value="1.28">🏙️ IT Park / Smart City Zone (+28% Velocity)</option>
+                                        <option value="1.20">🏭 Industrial SEZ / Logistics Hub (+20% Velocity)</option>
+                                        <option value="0.85">📉 Conservative / Rural Baseline (-15%)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button onclick="runDynamicSimulation()" class="btn btn-primary" style="width: 100%; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700;">
+                                        <span>⚡ Recalculate AI Model</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                            <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; font-weight: 700; color: #1e293b;" id="mlChartHeading">📊 Historical Valuation vs AI Future Regression Curve</h4>
+                            <div style="position: relative; height: 260px;">
+                                <canvas id="mlRegressionChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.25rem;">
+                            <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; font-weight: 700; color: #1e293b;">🔮 Future Price Projection Schedule</h4>
+                            <div class="table-responsive">
+                                <table class="data-table" style="font-size: 0.85rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>Year</th>
+                                            <th>Projected Market Value</th>
+                                            <th>Govt Valuation</th>
+                                            <th>Projected Rate (₹/Sq.Ft)</th>
+                                            <th>Expected Growth</th>
+                                            <th>95% Confidence Interval</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mlProjectionsTableBody">
+                                        <!-- Populated via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Tab -->
+                    <div id="tab-location" class="tab-panel">
+                        <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                            <div>
+                                <span style="font-size:0.82rem;color:#64748b;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Coordinates</span>
+                                <div id="locCoordsDisplay" style="font-size:1rem;font-weight:600;color:#1e293b;margin-top:4px;">—</div>
+                            </div>
+                            <button id="btnGoogleMaps" onclick="openGoogleMaps()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:linear-gradient(135deg,#1a73e8,#0f5bcb);color:white;border:none;border-radius:10px;font-size:0.875rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(26,115,232,0.4);transition:all 0.2s;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                                Open in Google Maps
+                            </button>
+                        </div>
+                        <div id="miniMap" style="height:380px;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;"></div>
+                        <p style="margin-top:10px;font-size:0.8rem;color:#94a3b8;text-align:center;">📍 Pinned location of this land parcel. Click "Open in Google Maps" for full navigation.</p>
+                    </div>
+
+                    <!-- Grievances Tab -->
+                    <div id="tab-grievances" class="tab-panel">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grievancesTableBody">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="btnViewMap" onclick="openGoogleMaps()" style="display:inline-flex;align-items:center;gap:7px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#1a73e8"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                    Open in Google Maps
+                </button>
+                <a href="#" class="btn btn-outline" id="btnFileGrievance">📝 File Grievance</a>
+                <button class="btn btn-primary" onclick="downloadPahani()">📄 Download Pahani</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let currentPage = 1;
+        const perPage = 20;
+        let priceChartInstance = null;
+        let mlChartInstance = null;
+        let miniMapInstance = null;
+        let currentParcelCoords = { lat: null, lng: null, survey: '', label: '' };
+        let currentPriceData = [];
+        let currentMlData = null;
+        let currentParcelId = null;
+
+        // Base URL for API calls (handles file:// opening)
+        const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
+
+        // Formatter for Indian Rupees
+        const inrFormat = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        });
+
+        // --- Auth Check ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('bhsUser');
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    document.getElementById('userNameDisplay').textContent = user.name || 'User';
+                    if (user.role === 'admin') {
+                        document.getElementById('adminLink').style.display = 'flex';
+                    }
+                } catch(e) {}
+            }
+            fetchRecords();
+        });
+
+        // --- Fetch & Render Records ---
+        async function fetchRecords(page = 1) {
+            currentPage = page;
+            const search = document.getElementById('searchInput').value;
+            const district = document.getElementById('districtFilter').value;
+            const landType = document.getElementById('typeFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            document.getElementById('tableLoader').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+
+            try {
+                const queryParams = new URLSearchParams({
+                    search: search,
+                    district: district,
+                    land_type: landType,
+                    status: status,
+                    page: page,
+                    per_page: perPage
+                });
+
+                const res = await fetch(`${API_BASE}/api/lands?${queryParams.toString()}`);
+                if (!res.ok) throw new Error('API Error');
+                const data = await res.json();
+                
+                renderTable(data);
+                renderPagination(data);
+                document.getElementById('resultsCount').textContent = `${data.total} Results Found`;
+            } catch (error) {
+                console.error("Error fetching records", error);
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ef4444;">Failed to load records. Backend may be offline.</td></tr>';
+            } finally {
+                document.getElementById('tableLoader').style.display = 'none';
+            }
+        }
+
+        // Event Listeners for Filters
+        document.getElementById('searchInput').addEventListener('input', debounce(() => fetchRecords(1), 300));
+        document.getElementById('districtFilter').addEventListener('change', () => fetchRecords(1));
+        document.getElementById('typeFilter').addEventListener('change', () => fetchRecords(1));
+        document.getElementById('statusFilter').addEventListener('change', () => fetchRecords(1));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if(!data.data || data.data.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+
+            data.data.forEach(parcel => {
+                const tr = document.createElement('tr');
+                tr.onclick = () => openModal(parcel.id);
+                
+                tr.innerHTML = `
+                    <td><strong>${parcel.survey_number}</strong></td>
+                    <td>${parcel.village}, ${parcel.district}</td>
+                    <td>${parcel.area_acres}</td>
+                    <td><span class="badge badge-${parcel.land_type.toLowerCase()}">${parcel.land_type}</span></td>
+                    <td><span class="badge badge-${parcel.status.toLowerCase()}">${parcel.status.charAt(0).toUpperCase() + parcel.status.slice(1)}</span></td>
+                    <td>${parcel.owner_name}</td>
+                    <td>${inrFormat.format(parcel.market_value)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderPagination(data) {
+            const container = document.getElementById('paginationControls');
+            container.innerHTML = '';
+            
+            const totalPages = data.pages;
+            if(totalPages <= 1) return;
+
+            // Prev
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.textContent = 'Previous';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => fetchRecords(currentPage - 1);
+            container.appendChild(prevBtn);
+
+            // Pages
+            for(let i=1; i<=totalPages; i++) {
+                if(i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    pageBtn.textContent = i;
+                    pageBtn.onclick = () => fetchRecords(i);
+                    container.appendChild(pageBtn);
+                } else if(i === currentPage - 2 || i === currentPage + 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.padding = '0.5rem';
+                    container.appendChild(ellipsis);
+                }
+            }
+
+            // Next
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.textContent = 'Next';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => fetchRecords(currentPage + 1);
+            container.appendChild(nextBtn);
+        }
+
+        // --- Modal Logic ---
+        async function openModal(id) {
+            currentParcelId = id;
+            document.getElementById('detailModal').classList.add('active');
+            document.getElementById('modalLoader').style.display = 'block';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/lands/${id}`);
+                if (!res.ok) throw new Error('API Error');
+                const details = await res.json();
+                populateModal(details);
+            } catch (error) {
+                console.error("Error fetching detail", error);
+                document.getElementById('modalLoader').style.display = 'none';
+                alert("Failed to fetch parcel details. Backend may be offline.");
+            }
+        }
+
+        function populateModal(details) {
+            currentParcelId = details.parcel.id;
+            document.getElementById('modalSurveyNo').textContent = `Survey No. ${details.parcel.survey_number}`;
+            const sb = document.getElementById('modalStatusBadge');
+            sb.className = `badge badge-${details.parcel.status.toLowerCase()}`;
+            sb.textContent = details.parcel.status.toUpperCase();
+
+            document.getElementById('moDistrict').textContent = details.parcel.district;
+            document.getElementById('moTaluk').textContent = details.parcel.taluk;
+            document.getElementById('moVillage').textContent = details.parcel.village;
+            document.getElementById('moArea').textContent = details.parcel.area_acres;
+            document.getElementById('moType').textContent = details.parcel.land_type;
+            document.getElementById('moUse').textContent = details.parcel.land_use;
+            document.getElementById('moEncumbrance').textContent = details.parcel.encumbrance || 'None';
+            document.getElementById('moCoords').textContent = (details.parcel.latitude && details.parcel.longitude) 
+                ? `${details.parcel.latitude.toFixed(4)}, ${details.parcel.longitude.toFixed(4)}` : 'N/A';
+
+            currentParcelCoords.lat = details.parcel.latitude;
+            currentParcelCoords.lng = details.parcel.longitude;
+            currentParcelCoords.survey = details.parcel.survey_number;
+            currentParcelCoords.label = details.parcel.village + ', ' + details.parcel.district;
+            document.getElementById('locCoordsDisplay').textContent =
+                (details.parcel.latitude && details.parcel.longitude)
+                    ? details.parcel.latitude.toFixed(6) + '°N, ' + details.parcel.longitude.toFixed(6) + '°E'
+                    : 'Coordinates not available';
+
+            // Ownership history
+            const tl = document.getElementById('ownershipTimeline');
+            tl.innerHTML = '';
+            (details.ownership_history || []).forEach(oh => {
+                tl.innerHTML += `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${oh.from_date} to ${oh.to_date || 'Present'}</div>
+                        <div class="timeline-content">
+                            <strong>${oh.owner_name}</strong><br>
+                            <small style="color: #64748b;">${oh.transfer_type} | Deed: ${oh.deed_number}</small><br>
+                            ${oh.consideration_amount ? `Value: ${inrFormat.format(oh.consideration_amount)}` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            currentPriceData = details.price_history || [];
+            currentMlData = details.ml_analysis || null;
+
+            // Populate AI/ML Analytics Tab
+            if (currentMlData) {
+                populateMlTab(currentMlData);
+            }
+
+            // Grievances table
+            const gb = document.getElementById('grievancesTableBody');
+            gb.innerHTML = '';
+            if(!details.grievances || details.grievances.length === 0) {
+                gb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:#94a3b8;">No grievances recorded for this parcel.</td></tr>';
+            } else {
+                details.grievances.forEach(g => {
+                    gb.innerHTML += `
+                        <tr>
+                            <td><strong>${g.ticket_id || g.id}</strong></td>
+                            <td>${g.created_at ? new Date(g.created_at).toLocaleDateString() : 'N/A'}</td>
+                            <td>${g.category || g.type}</td>
+                            <td><span class="badge ${g.status === 'resolved' ? 'badge-clear' : 'badge-disputed'}">${g.status}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('btnFileGrievance').href = `grievance.html?survey=${details.parcel.survey_number}&lat=${details.parcel.latitude}&lng=${details.parcel.longitude}`;
+
+            document.getElementById('modalLoader').style.display = 'none';
+            switchTab('overview');
+        }
+
+        function populateMlTab(mlData) {
+            document.getElementById('mlModelHeading').textContent = mlData.model_name || 'BhoomiML Multi-Factor Regression v2.4 (Dynamic)';
+            document.getElementById('mlRecommendation').textContent = mlData.recommendation || 'Strong Long-Term Capital Appreciation';
+            
+            const rb = document.getElementById('mlRiskBadge');
+            rb.textContent = mlData.risk_level || 'Low Risk Asset';
+            if (mlData.risk_level === 'Low Risk') {
+                rb.style.background = '#16a34a';
+            } else if (mlData.risk_level === 'Moderate Risk') {
+                rb.style.background = '#d97706';
+            } else {
+                rb.style.background = '#dc2626';
+            }
+
+            const cagrVal = mlData.effective_cagr_percent || mlData.historical_cagr_percent;
+            document.getElementById('mlCagr').textContent = `+${cagrVal}% / yr`;
+            document.getElementById('mlR2').textContent = `${mlData.accuracy_percentage}% Accuracy`;
+            document.getElementById('mlProj3Yr').textContent = inrFormat.format(mlData.projected_3yr_value);
+            document.getElementById('mlRoi3Yr').textContent = `+${mlData.projected_3yr_roi_percent}% Expected Gain`;
+            document.getElementById('mlProj5Yr').textContent = inrFormat.format(mlData.projected_5yr_value);
+            document.getElementById('mlRoi5Yr').textContent = `+${mlData.projected_5yr_roi_percent}% Expected Gain`;
+            document.getElementById('mlRateSqft').textContent = `₹${mlData.current_price_per_sqft.toLocaleString('en-IN')}`;
+            document.getElementById('mlScore').textContent = `${mlData.investment_score} / 100`;
+
+            // Future Projections Table
+            const pTbody = document.getElementById('mlProjectionsTableBody');
+            pTbody.innerHTML = '';
+            (mlData.future_projections || []).forEach(fp => {
+                pTbody.innerHTML += `
+                    <tr>
+                        <td><strong>${fp.year}</strong></td>
+                        <td style="font-weight:700;color:#1e40af;">${inrFormat.format(fp.projected_market_value)}</td>
+                        <td>${inrFormat.format(fp.projected_govt_value)}</td>
+                        <td>₹${fp.projected_price_per_sqft.toLocaleString('en-IN')}/sq.ft</td>
+                        <td style="color:#16a34a;font-weight:700;">+${fp.growth_from_current_percent}%</td>
+                        <td style="font-size:0.8rem;color:#64748b;">${inrFormat.format(fp.confidence_lower)} - ${inrFormat.format(fp.confidence_upper)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function runDynamicSimulation() {
+            if (!currentParcelId) return;
+            const horizon = document.getElementById('simHorizonInput').value || 10;
+            const devFactor = document.getElementById('simDevFactor').value || 1.0;
+            
+            try {
+                const res = await fetch(`/api/ml/predict-price?parcel_id=${currentParcelId}&horizon_years=${horizon}&dev_factor=${devFactor}`);
+                const data = await res.json();
+                if (data.success && data.ml_analysis) {
+                    currentMlData = data.ml_analysis;
+                    populateMlTab(currentMlData);
+                    renderMlChart(currentPriceData, currentMlData);
+                }
+            } catch(err) {
+                console.error("Simulation error", err);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+            if (miniMapInstance) {
+                miniMapInstance.remove();
+                miniMapInstance = null;
+            }
+        }
+
+        function openGoogleMaps() {
+            const { lat, lng, survey, label } = currentParcelCoords;
+            if (!lat || !lng) {
+                alert('Coordinates not available for this parcel.');
+                return;
+            }
+            const query = encodeURIComponent(`${label} (${survey})`);
+            const url = `https://www.google.com/maps?q=${lat},${lng}&z=17&t=k&layer=t`;
+            window.open(url, '_blank');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                if (b.getAttribute('data-tab') === tabId) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+
+            document.querySelectorAll('.tab-panel').forEach(p => {
+                p.classList.remove('active');
+            });
+            const activePanel = document.getElementById(`tab-${tabId}`);
+            if (activePanel) activePanel.classList.add('active');
+
+            if (tabId === 'price' && currentPriceData) {
+                setTimeout(() => renderChart(currentPriceData), 50);
+            } else if (tabId === 'ml' && currentPriceData && currentMlData) {
+                setTimeout(() => renderMlChart(currentPriceData, currentMlData), 50);
+            } else if (tabId === 'location') {
+                const { lat, lng, survey, label } = currentParcelCoords;
+                if (lat && lng) {
+                    if (miniMapInstance) {
+                        miniMapInstance.remove();
+                        miniMapInstance = null;
+                    }
+                    setTimeout(() => {
+                        miniMapInstance = L.map('miniMap').setView([lat, lng], 16);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '© OpenStreetMap'
+                        }).addTo(miniMapInstance);
+                        const marker = L.marker([lat, lng]).addTo(miniMapInstance);
+                        marker.bindPopup(
+                            `<b>${survey}</b><br>${label}<br>` +
+                            `<a href="https://www.google.com/maps?q=${lat},${lng}&z=17" target="_blank" ` +
+                            `style="color:#1a73e8;font-weight:700;">📍 Open in Google Maps</a>`
+                        ).openPopup();
+                    }, 100);
+                } else {
+                    document.getElementById('miniMap').innerHTML =
+                        '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;">Coordinates not available for this parcel.</div>';
+                }
+            }
+        }
+
+        function renderChart(priceData) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            if(priceChartInstance) {
+                priceChartInstance.destroy();
+            }
+
+            const labels = priceData.map(d => d.year);
+            const marketVals = priceData.map(d => d.market_value);
+            const govtVals = priceData.map(d => d.govt_value);
+
+            priceChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Market Value (₹)',
+                            data: marketVals,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#2563eb'
+                        },
+                        {
+                            label: 'Govt Guidance Value (₹)',
+                            data: govtVals,
+                            borderColor: '#16a34a',
+                            backgroundColor: 'transparent',
+                            borderDash: [5, 5],
+                            tension: 0.35,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return (context.dataset.label || '') + ': ' + inrFormat.format(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value >= 10000000 ? '₹' + (value/10000000).toFixed(1) + ' Cr' : '₹' + (value/100000).toFixed(0) + ' L';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderMlChart(priceData, mlData) {
+            const canvas = document.getElementById('mlRegressionChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if(mlChartInstance) {
+                mlChartInstance.destroy();
+            }
+
+            // Combine historical + future labels
+            const histYears = priceData.map(d => d.year);
+            const futureProjs = mlData.future_projections || [];
+            const allYears = [...histYears, ...futureProjs.map(f => f.year)];
+
+            // Historical series
+            const histSeries = priceData.map(d => d.market_value);
+            // Regression series matching all years
+            const lastHist = histSeries[histSeries.length - 1];
+            const regressionSeries = [...new Array(histYears.length - 1).fill(null), lastHist, ...futureProjs.map(f => f.projected_market_value)];
+            const upperConfidence = [...new Array(histYears.length - 1).fill(null), lastHist, ...futureProjs.map(f => f.confidence_upper)];
+            const lowerConfidence = [...new Array(histYears.length - 1).fill(null), lastHist, ...futureProjs.map(f => f.confidence_lower)];
+
+            mlChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: allYears,
+                    datasets: [
+                        {
+                            label: 'Historical Actual (2020-2025)',
+                            data: [...histSeries, ...new Array(futureProjs.length).fill(null)],
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#2563eb'
+                        },
+                        {
+                            label: 'AI ML Regression Forecast (2026-2035)',
+                            data: regressionSeries,
+                            borderColor: '#7c3aed',
+                            backgroundColor: 'rgba(124, 58, 237, 0.08)',
+                            borderWidth: 3,
+                            borderDash: [6, 4],
+                            pointRadius: 6,
+                            pointBackgroundColor: '#7c3aed'
+                        },
+                        {
+                            label: 'Upper 95% Confidence Band',
+                            data: upperConfidence,
+                            borderColor: '#22c55e',
+                            borderWidth: 1.5,
+                            borderDash: [2, 2],
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'Lower 95% Confidence Band',
+                            data: lowerConfidence,
+                            borderColor: '#ef4444',
+                            borderWidth: 1.5,
+                            borderDash: [2, 2],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.parsed.y === null || context.parsed.y === undefined) return '';
+                                    return (context.dataset.label || '') + ': ' + inrFormat.format(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return value >= 10000000 ? '₹' + (value/10000000).toFixed(1) + ' Cr' : '₹' + (value/100000).toFixed(0) + ' L';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function downloadPahani() {
+            alert("Official digitally signed Land Record / Pahani generated with QR authenticity hash.");
+        }
+
+    </script>
+</body>
+</html>
