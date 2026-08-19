@@ -25,7 +25,7 @@ CORS(app)
 SECRET = 'LAND_RECORDS_SECRET_2024_GOV_IN'
 
 # ─────────────────────────────────────────────
-# JWT (minimal, no external library) yashman
+# JWT (minimal, no external library) yashman changes
 # ─────────────────────────────────────────────
 import base64
 import hmac
