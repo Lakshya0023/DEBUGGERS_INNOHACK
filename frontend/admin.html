@@ -542,22 +542,26 @@
                             <input type="text" class="form-control" name="surveyNumber" placeholder="e.g. 102/A" required>
                         </div>
                         <div class="form-group">
+                            <label>State / Union Territory</label>
+                            <select class="form-control" name="state" id="loc-state" required>
+                                <option value="">Select State / UT</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>District</label>
-                            <select class="form-control" name="district" id="loc-district" required>
-                                <option value="">Select District</option>
+                            <select class="form-control" name="district" id="loc-district" required disabled>
+                                <option value="">Select District (choose State first)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Taluk</label>
+                            <label>Taluka / Zone</label>
                             <select class="form-control" name="taluk" id="loc-taluk" required disabled>
-                                <option value="">Select Taluk</option>
+                                <option value="">Select Taluka (choose District first)</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Village</label>
-                            <select class="form-control" name="village" id="loc-village" required disabled>
-                                <option value="">Select Village</option>
-                            </select>
+                            <label>Village / Locality</label>
+                            <input type="text" class="form-control" name="village" id="loc-village" placeholder="e.g. Koramangala / Village Name" required>
                         </div>
                         <div class="form-group">
                             <label>Area (Acres)</label>
@@ -577,11 +581,10 @@
                             <input type="text" class="form-control" name="landUse" placeholder="e.g. Farming">
                         </div>
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>📍 Google Maps Location URL</label>
+                            <label>📍 Google Maps Location URL (Optional / Auto-Derived)</label>
                             <input type="url" class="form-control" name="locationUrl"
-                              placeholder="Paste Google Maps link, e.g. https://www.google.com/maps/place/.../@12.97,77.59,15z"
-                              required>
-                            <small style="color:#64748b; display:block; margin-top:4px;">Open Google Maps → right-click the exact location → <b>Copy link</b>. Lat/Lng will be auto-extracted from the URL.</small>
+                              placeholder="Paste Google Maps link (optional), e.g. https://www.google.com/maps/place/.../@12.97,77.59,15z">
+                            <small style="color:#64748b; display:block; margin-top:4px;">If left blank, coordinates will be auto-derived based on the selected District & State center on Indian land.</small>
                         </div>
                         <div class="form-group">
                             <label>Market Value (₹)</label>
@@ -596,7 +599,8 @@
                             </select>
                         </div>
                     </div>
-                    <div style="margin-top: 24px; text-align: right;">
+                    <div style="margin-top: 24px; text-align: right; display:flex; gap:12px; justify-content:flex-end;">
+                        <button type="button" class="btn" onclick="toggleAddForm()" style="background:white;border:1px solid #cbd5e1;color:#475569;">Cancel</button>
                         <button type="submit" class="btn btn-success">Save Land Record</button>
                     </div>
                 </form>
@@ -1022,19 +1026,28 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // Extract lat/lng from the provided Google Maps URL
-            const coords = extractLatLngFromUrl(data.locationUrl || '');
+            // Extract lat/lng from URL or auto-derive based on district/state
+            let coords = extractLatLngFromUrl(data.locationUrl || '');
             if (!coords) {
-                alert('❌ Could not extract coordinates from the Google Maps URL.\n\nPlease use a full link like:\nhttps://www.google.com/maps/place/.../@12.9716,77.5946,15z\n\nShort links (maps.app.goo.gl) are not supported — please open them in a browser first, then copy the full URL from the address bar.');
-                return;
+                // Auto-derive fallback coordinates for standard Indian districts
+                const state = data.state || '';
+                const district = data.district || '';
+                coords = getDistrictCenterCoords(district, state);
             }
 
             // Format numeric values
             data.areaAcres = parseFloat(data.areaAcres);
             data.marketValue = parseFloat(data.marketValue);
-            // Attach extracted coordinates
-            data.latitude = coords.lat;
-            data.longitude = coords.lng;
+            if (coords) {
+                data.latitude = coords.lat;
+                data.longitude = coords.lng;
+            }
+
+            if (!currentToken) {
+                alert('❌ Admin session not found or expired. Please login again.');
+                window.location.href = 'login.html';
+                return;
+            }
 
             submitBtn.textContent = 'Saving...';
             submitBtn.disabled = true;
@@ -1049,89 +1062,215 @@
                     body: JSON.stringify(data)
                 });
 
-                const result = await res.json();
+                if (res.status === 401 || res.status === 403) {
+                    alert('❌ Session expired or unauthorized. Please log in again as admin.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const result = await res.json().catch(() => ({ error: 'Server returned invalid response' }));
                 if (!res.ok) {
                     alert(`❌ Failed to save land record:\n${result.error || 'Unknown error'}`);
                     return;
                 }
 
-                alert(`✅ Land record added successfully!\nCoordinates: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}\nThe parcel will now appear on the Explore Map.`);
+                const dispLat = result.latitude || (coords ? coords.lat : 20.59);
+                const dispLng = result.longitude || (coords ? coords.lng : 78.96);
+                alert(`✅ Land record added successfully!\nSurvey: ${data.surveyNumber}\nLocation: ${data.district}, ${data.state}\nCoordinates: ${Number(dispLat).toFixed(5)}, ${Number(dispLng).toFixed(5)}\n\nThe record is now live on the Map Explorer!`);
                 form.reset();
                 toggleAddForm();
                 fetchAnalytics();
 
             } catch(err) {
                 console.error("API Add Land failed:", err);
-                alert('❌ Could not connect to the server. Please ensure the backend is running and try again.');
+                alert(`❌ Network or server error: ${err.message || 'Could not connect to backend'}`);
             } finally {
                 submitBtn.textContent = 'Save Land Record';
                 submitBtn.disabled = false;
             }
         }
-        async function loadDistricts() {
-            try {
-                const res = await fetch(`${apiBase}/locations/districts`);
-                const dists = await res.json();
-                const distSelect = document.getElementById('loc-district');
-                dists.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d; opt.textContent = d;
-                    distSelect.appendChild(opt);
-                });
-            } catch (e) {
-                console.warn('Failed to load districts', e);
+
+        // Auto-derive realistic centroid coordinates for Indian districts
+        function getDistrictCenterCoords(district, state) {
+            const districtCoords = {
+                "Bengaluru Urban": { lat: 12.9716, lng: 77.5946 },
+                "Bengaluru Rural": { lat: 13.2330, lng: 77.5670 },
+                "Delhi": { lat: 28.6139, lng: 77.2090 },
+                "New Delhi": { lat: 28.6139, lng: 77.2090 },
+                "Chennai": { lat: 13.0400, lng: 80.1800 },
+                "Mumbai": { lat: 19.1000, lng: 72.9000 },
+                "Mumbai City": { lat: 18.9600, lng: 72.8200 },
+                "Mumbai Suburban": { lat: 19.1200, lng: 72.8800 },
+                "Hyderabad": { lat: 17.3850, lng: 78.4867 },
+                "Pune": { lat: 18.5204, lng: 73.8567 },
+                "Kolkata": { lat: 22.5726, lng: 88.3639 },
+                "Ahmedabad": { lat: 23.0225, lng: 72.5714 },
+                "Jaipur": { lat: 26.9124, lng: 75.7873 },
+                "Lucknow": { lat: 26.8467, lng: 80.9462 },
+                "Patna": { lat: 25.5941, lng: 85.1376 },
+                "Visakhapatnam": { lat: 17.7200, lng: 83.2200 },
+                "Vellore": { lat: 12.9165, lng: 79.1325 },
+                "Mysuru": { lat: 12.2958, lng: 76.6394 }
+            };
+            if (districtCoords[district]) {
+                const base = districtCoords[district];
+                const jitter = (Math.random() - 0.5) * 0.04;
+                return { lat: parseFloat((base.lat + jitter).toFixed(6)), lng: parseFloat((base.lng + jitter).toFixed(6)) };
             }
+            // State-level generic centroid fallback for all 36 States & UTs
+            const stateCentroids = {
+                "Andaman and Nicobar Islands": { lat: 11.7401, lng: 92.6586 },
+                "Andhra Pradesh": { lat: 15.9129, lng: 79.7400 },
+                "Arunachal Pradesh": { lat: 28.2180, lng: 94.7278 },
+                "Assam": { lat: 26.2006, lng: 92.9376 },
+                "Bihar": { lat: 25.0961, lng: 85.3131 },
+                "Chandigarh": { lat: 30.7333, lng: 76.7794 },
+                "Chhattisgarh": { lat: 21.2787, lng: 81.8661 },
+                "Dadra and Nagar Haveli and Daman and Diu": { lat: 20.4283, lng: 72.8397 },
+                "Delhi": { lat: 28.7041, lng: 77.1025 },
+                "Goa": { lat: 15.2993, lng: 74.1240 },
+                "Gujarat": { lat: 22.2587, lng: 71.1924 },
+                "Haryana": { lat: 29.0588, lng: 76.0856 },
+                "Himachal Pradesh": { lat: 31.1048, lng: 77.1734 },
+                "Jammu and Kashmir": { lat: 33.7782, lng: 76.5762 },
+                "Jharkhand": { lat: 23.6102, lng: 85.2799 },
+                "Karnataka": { lat: 15.3173, lng: 75.7139 },
+                "Kerala": { lat: 10.8505, lng: 76.2711 },
+                "Ladakh": { lat: 34.1526, lng: 77.5771 },
+                "Lakshadweep": { lat: 10.5667, lng: 72.6417 },
+                "Madhya Pradesh": { lat: 22.9734, lng: 78.6569 },
+                "Maharashtra": { lat: 19.7515, lng: 75.7139 },
+                "Manipur": { lat: 24.6637, lng: 93.9063 },
+                "Meghalaya": { lat: 25.4670, lng: 91.3662 },
+                "Mizoram": { lat: 23.1645, lng: 92.9376 },
+                "Nagaland": { lat: 26.1584, lng: 94.5624 },
+                "Odisha": { lat: 20.9517, lng: 85.0985 },
+                "Puducherry": { lat: 11.9416, lng: 79.8083 },
+                "Punjab": { lat: 31.1471, lng: 75.3412 },
+                "Rajasthan": { lat: 27.0238, lng: 74.2179 },
+                "Sikkim": { lat: 27.5330, lng: 88.5122 },
+                "Tamil Nadu": { lat: 11.1271, lng: 78.6569 },
+                "Telangana": { lat: 18.1124, lng: 79.0193 },
+                "Tripura": { lat: 23.9408, lng: 91.9882 },
+                "Uttar Pradesh": { lat: 26.8467, lng: 80.9462 },
+                "Uttarakhand": { lat: 30.0668, lng: 79.0193 },
+                "West Bengal": { lat: 22.9868, lng: 87.8550 }
+            };
+            const sc = stateCentroids[state] || { lat: 20.5937, lng: 78.9629 };
+            const jitter = (Math.random() - 0.5) * 0.08;
+            return { lat: parseFloat((sc.lat + jitter).toFixed(6)), lng: parseFloat((sc.lng + jitter).toFixed(6)) };
         }
 
-        document.getElementById('loc-district').addEventListener('change', async function() {
-            const talukSelect = document.getElementById('loc-taluk');
-            const villageSelect = document.getElementById('loc-village');
-            talukSelect.innerHTML = '<option value="">Select Taluk</option>';
-            villageSelect.innerHTML = '<option value="">Select Village</option>';
-            villageSelect.disabled = true;
-            
-            if(!this.value) {
+        // --- Cascading Location Dropdowns ---
+        async function loadStates() {
+            const stateSelect = document.getElementById('loc-state');
+            if (!stateSelect) return;
+            stateSelect.innerHTML = '<option value="">Select State / UT</option>';
+
+            // Load from STATES_DISTRICTS_DATA global object (from states_districts.js) or API
+            let statesList = [];
+            if (typeof STATES_DISTRICTS_DATA !== 'undefined') {
+                statesList = Object.keys(STATES_DISTRICTS_DATA).sort();
+            } else {
+                try {
+                    const res = await fetch(`${apiBase}/locations/states`);
+                    if (res.ok) statesList = await res.json();
+                } catch(e) {}
+            }
+
+            statesList.forEach(st => {
+                const opt = document.createElement('option');
+                opt.value = st;
+                opt.textContent = st;
+                stateSelect.appendChild(opt);
+            });
+        }
+
+        // When State changes -> Filter District list
+        const stateElem = document.getElementById('loc-state');
+        if (stateElem) {
+            stateElem.addEventListener('change', function() {
+                const selectedState = this.value;
+                const distSelect = document.getElementById('loc-district');
+                const talukSelect = document.getElementById('loc-taluk');
+
+                distSelect.innerHTML = '<option value="">Select District</option>';
+                talukSelect.innerHTML = '<option value="">Select Taluka</option>';
                 talukSelect.disabled = true;
-                return;
-            }
-            
-            talukSelect.disabled = false;
-            try {
-                const res = await fetch(`${apiBase}/locations/taluks?district=${encodeURIComponent(this.value)}`);
-                const taluks = await res.json();
-                taluks.forEach(t => {
-                    const opt = document.createElement('option');
-                    opt.value = t; opt.textContent = t;
-                    talukSelect.appendChild(opt);
-                });
-            } catch (e) { console.warn('Failed to load taluks', e); }
-        });
 
-        document.getElementById('loc-taluk').addEventListener('change', async function() {
-            const dist = document.getElementById('loc-district').value;
-            const villageSelect = document.getElementById('loc-village');
-            villageSelect.innerHTML = '<option value="">Select Village</option>';
-            
-            if(!this.value) {
-                villageSelect.disabled = true;
-                return;
-            }
-            
-            villageSelect.disabled = false;
-            try {
-                const res = await fetch(`${apiBase}/locations/villages?district=${encodeURIComponent(dist)}&taluk=${encodeURIComponent(this.value)}`);
-                const villages = await res.json();
-                villages.forEach(v => {
-                    const opt = document.createElement('option');
-                    opt.value = v; opt.textContent = v;
-                    villageSelect.appendChild(opt);
-                });
-            } catch (e) { console.warn('Failed to load villages', e); }
-        });
+                if (!selectedState) {
+                    distSelect.disabled = true;
+                    return;
+                }
 
-        // Initialize locations
+                distSelect.disabled = false;
+                let districts = [];
+                if (typeof STATES_DISTRICTS_DATA !== 'undefined' && STATES_DISTRICTS_DATA[selectedState]) {
+                    districts = STATES_DISTRICTS_DATA[selectedState];
+                }
+
+                districts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    distSelect.appendChild(opt);
+                });
+            });
+        }
+
+        // When District changes -> Filter Taluka list
+        const distElem = document.getElementById('loc-district');
+        if (distElem) {
+            distElem.addEventListener('change', async function() {
+                const dist = this.value;
+                const talukSelect = document.getElementById('loc-taluk');
+                talukSelect.innerHTML = '<option value="">Select Taluka / Zone</option>';
+
+                if (!dist) {
+                    talukSelect.disabled = true;
+                    return;
+                }
+
+                talukSelect.disabled = false;
+                try {
+                    const res = await fetch(`${apiBase}/locations/taluks?district=${encodeURIComponent(dist)}`);
+                    let taluks = [];
+                    if (res.ok) taluks = await res.json();
+
+                    if (!taluks || taluks.length === 0) {
+                        // Standard sub-division zones for any Indian district
+                        taluks = [
+                            `${dist} Sadar / Central`,
+                            `${dist} North Zone`,
+                            `${dist} South Zone`,
+                            `${dist} East Zone`,
+                            `${dist} West Zone`,
+                            `${dist} Rural Taluka`,
+                            `${dist} Urban Taluka`
+                        ];
+                    }
+
+                    taluks.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t;
+                        opt.textContent = t;
+                        talukSelect.appendChild(opt);
+                    });
+                } catch(e) {
+                    const defaultTaluks = [`${dist} North`, `${dist} South`, `${dist} East`, `${dist} West`];
+                    defaultTaluks.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t;
+                        opt.textContent = t;
+                        talukSelect.appendChild(opt);
+                    });
+                }
+            });
+        }
+
+        // Initialize locations on DOM ready
         document.addEventListener('DOMContentLoaded', () => {
-            loadDistricts();
+            loadStates();
         });
 
     </script>

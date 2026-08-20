@@ -743,7 +743,7 @@
         }
 
         // ── MAP PICKER ────────────────────────────────────────────
-        const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5001' : '';
+        const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
         let gMap = null;
         let gMarker = null;
 
@@ -883,18 +883,13 @@
             };
 
             try {
-                let response;
-                try {
-                    const res = await fetch(`${API_BASE}/api/grievances`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    response = await res.json();
-                    if (!res.ok) throw new Error(response.error || 'Failed to submit grievance');
-                } catch (apiErr) {
-                    throw new Error(apiErr.message);
-                }
+                const res = await fetch(`${API_BASE}/api/grievances`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const response = await res.json().catch(() => ({ error: 'Server returned non-JSON response' }));
+                if (!res.ok) throw new Error(response.error || 'Failed to submit grievance');
 
                 form.style.display = 'none';
                 document.getElementById('success-card').style.display = 'block';
@@ -911,7 +906,8 @@
 
                 showToast('Grievance submitted successfully!', 'success');
             } catch (error) {
-                showToast('Error submitting grievance. Try again.', 'error');
+                console.error("Grievance submission error:", error);
+                showToast(error.message || 'Error submitting grievance. Try again.', 'error');
             } finally {
                 submitBtn.classList.remove('loading');
                 submitBtn.disabled = false;

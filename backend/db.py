@@ -4,9 +4,8 @@ from datetime import datetime, timedelta
 DB_PATH = os.path.join(os.path.dirname(__file__), 'land_records.db')
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH, timeout=30.0)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0, isolation_level=None)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("PRAGMA busy_timeout = 30000")
     return conn
@@ -16,6 +15,7 @@ def hash_password(p):
 
 def init_db():
     conn = get_db()
+    conn.execute("PRAGMA journal_mode=WAL")
     c = conn.cursor()
 
     c.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -157,7 +157,7 @@ CITIES = {
     },
     "Chennai": {
         "state": "Tamil Nadu",
-        "base_lat": 13.0827, "base_lng": 80.2707, "spread": 0.15,
+        "base_lat": 13.0400, "base_lng": 80.1800, "spread": 0.06,
         "price_base": 6_000_000, "price_max": 60_000_000,
         "taluks": ["Chennai North", "Chennai South", "Tambaram", "Sholinganallur", "Ambattur"],
         "localities": ["T Nagar","Adyar","Anna Nagar","Velachery","Tambaram","Porur","Chromepet","Perambur","Royapettah","Mylapore","Guindy","Sholinganallur","Perungudi","Ambattur","Avadi"],
@@ -165,7 +165,7 @@ CITIES = {
     },
     "Mumbai": {
         "state": "Maharashtra",
-        "base_lat": 19.0760, "base_lng": 72.8777, "spread": 0.12,
+        "base_lat": 19.1000, "base_lng": 72.9000, "spread": 0.05,
         "price_base": 15_000_000, "price_max": 200_000_000,
         "taluks": ["Mumbai City", "Mumbai Suburban", "Andheri", "Borivali", "Kurla"],
         "localities": ["Andheri","Bandra","Borivali","Dadar","Goregaon","Malad","Kandivali","Kurla","Ghatkopar","Mulund","Thane","Powai","Vikhroli","Chembur","Sion","Worli","Lower Parel","Prabhadevi"],
@@ -237,7 +237,7 @@ CITIES = {
     },
     "Visakhapatnam": {
         "state": "Andhra Pradesh",
-        "base_lat": 17.6868, "base_lng": 83.2185, "spread": 0.16,
+        "base_lat": 17.7200, "base_lng": 83.2200, "spread": 0.06,
         "price_base": 2_500_000, "price_max": 35_000_000,
         "taluks": ["Visakhapatnam Urban", "Visakhapatnam Rural", "Gajuwaka", "Anakapalle"],
         "localities": ["MVP Colony","Siripuram","Madhurawada","Gajuwaka","Rushikonda","Seethammadhara","Dwaraka Nagar","Pendurthi","Bheemunipatnam"],

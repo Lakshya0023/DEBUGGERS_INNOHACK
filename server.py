@@ -17,7 +17,46 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
-from backend.db import get_db, init_db, hash_password
+from backend.db import get_db, init_db, hash_password, CITIES
+
+STATE_CENTROIDS = {
+    "Andaman and Nicobar Islands": (11.7401, 92.6586),
+    "Andhra Pradesh": (15.9129, 79.7400),
+    "Arunachal Pradesh": (28.2180, 94.7278),
+    "Assam": (26.2006, 92.9376),
+    "Bihar": (25.0961, 85.3131),
+    "Chandigarh": (30.7333, 76.7794),
+    "Chhattisgarh": (21.2787, 81.8661),
+    "Dadra and Nagar Haveli and Daman and Diu": (20.4283, 72.8397),
+    "Delhi": (28.7041, 77.1025),
+    "Goa": (15.2993, 74.1240),
+    "Gujarat": (22.2587, 71.1924),
+    "Haryana": (29.0588, 76.0856),
+    "Himachal Pradesh": (31.1048, 77.1734),
+    "Jammu and Kashmir": (33.7782, 76.5762),
+    "Jharkhand": (23.6102, 85.2799),
+    "Karnataka": (15.3173, 75.7139),
+    "Kerala": (10.8505, 76.2711),
+    "Ladakh": (34.1526, 77.5771),
+    "Lakshadweep": (10.5667, 72.6417),
+    "Madhya Pradesh": (22.9734, 78.6569),
+    "Maharashtra": (19.7515, 75.7139),
+    "Manipur": (24.6637, 93.9063),
+    "Meghalaya": (25.4670, 91.3662),
+    "Mizoram": (23.1645, 92.9376),
+    "Nagaland": (26.1584, 94.5624),
+    "Odisha": (20.9517, 85.0985),
+    "Puducherry": (11.9416, 79.8083),
+    "Punjab": (31.1471, 75.3412),
+    "Rajasthan": (27.0238, 74.2179),
+    "Sikkim": (27.5330, 88.5122),
+    "Tamil Nadu": (11.1271, 78.6569),
+    "Telangana": (18.1124, 79.0193),
+    "Tripura": (23.9408, 91.9882),
+    "Uttar Pradesh": (26.8467, 80.9462),
+    "Uttarakhand": (30.0668, 79.0193),
+    "West Bengal": (22.9868, 87.8550),
+}
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app)
@@ -93,6 +132,63 @@ def require_admin(f):
         g.user = payload
         return f(*args, **kwargs)
     return decorated
+
+# ─────────────────────────────────────────────
+# LOCATION URL HELPER
+# ─────────────────────────────────────────────
+def resolve_maps_link(short_url: str):
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    try:
+        resp = requests.get(short_url, headers=headers, allow_redirects=True, timeout=6)
+        final_url = resp.url
+
+        m = re.search(r'@(-?\d+\.\d+),(-?\d+\.\d+)', final_url)
+        if not m:
+            m = re.search(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)', final_url)
+        if not m:
+            m = re.search(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)', resp.text)
+
+        if not m:
+            return None
+
+        return {"lat": float(m.group(1)), "lng": float(m.group(2)), "resolved_url": final_url}
+    except Exception:
+        return None
+
+def parse_latlng_from_url(url):
+    """Extract lat, lng from a Google Maps URL.
+    Handles formats like:
+      - https://www.google.com/maps/place/.../@12.9716,77.5946,15z
+      - https://maps.google.com/?q=12.9716,77.5946
+      - https://www.google.com/maps?ll=12.9716,77.5946
+      - Short links like https://maps.app.goo.gl/... or https://goo.gl/maps/...
+    """
+    import re as _re
+    if not url:
+        return None, None
+    url = str(url).strip()
+    m = _re.search(r"@(-?\d+\.?\d*),(-?\d+\.?\d*)", url)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    m = _re.search(r"[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)", url)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    m = _re.search(r"ll=(-?\d+\.?\d*),(-?\d+\.?\d*)", url)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    m = _re.search(r"(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)", url)
+    if m:
+        lat, lng = float(m.group(1)), float(m.group(2))
+        if -90 <= lat <= 90 and -180 <= lng <= 180:
+            return lat, lng
+    if 'goo.gl' in url or 'maps.app' in url or 'page.link' in url:
+        try:
+            res = resolve_maps_link(url)
+            if res and isinstance(res, dict) and 'lat' in res and 'lng' in res:
+                return float(res['lat']), float(res['lng'])
+        except Exception:
+            pass
+    return None, None
 
 # ─────────────────────────────────────────────
 # AUTH ROUTES
@@ -498,66 +594,144 @@ def get_land_detail(parcel_id):
 @require_admin
 def create_land():
     raw_data = request.json or {}
-    data = {
-        'survey_number': raw_data.get('survey_number') or raw_data.get('surveyNumber'),
-        'state': raw_data.get('state'),
-        'district': raw_data.get('district'),
-        'taluk': raw_data.get('taluk') or 'Default Taluk',
-        'village': raw_data.get('village') or 'Default Village',
-        'area_acres': raw_data.get('area_acres') or raw_data.get('areaAcres'),
-        'land_type': raw_data.get('land_type') or raw_data.get('landType', 'Residential'),
-        'land_use': raw_data.get('land_use') or raw_data.get('landUse', 'General'),
-        'latitude': raw_data.get('latitude'),
-        'longitude': raw_data.get('longitude'),
-        'market_value': raw_data.get('market_value') or raw_data.get('marketValue'),
-        'status': raw_data.get('status', 'clear'),
-        'encumbrance': raw_data.get('encumbrance', 'None'),
-        'owner_name': raw_data.get('owner_name') or raw_data.get('ownerName', 'Registered Landholder')
-    }
-    
-    required = ['survey_number', 'district', 'area_acres', 'land_type', 'latitude', 'longitude', 'market_value']
-    for f in required:
-        if not data.get(f):
-            return jsonify({'error': f'{f} is required'}), 400
+    location_url = raw_data.get('location_url') or raw_data.get('locationUrl', '')
+    url_lat, url_lng = parse_latlng_from_url(location_url) if 'parse_latlng_from_url' in globals() else (None, None)
+
+    lat = raw_data.get('latitude')
+    if lat is None or str(lat).strip() == '':
+        lat = url_lat
+    lng = raw_data.get('longitude')
+    if lng is None or str(lng).strip() == '':
+        lng = url_lng
+
+    district = str(raw_data.get('district') or '').strip()
+    state = str(raw_data.get('state') or '').strip()
+
+    # Fallback to centroid if coordinates missing
+    if lat is None or lng is None or str(lat).strip() == '' or str(lng).strip() == '':
+        city_info = CITIES.get(district) if 'CITIES' in globals() else None
+        if city_info:
+            lat = city_info['base_lat'] + random.uniform(-0.02, 0.02)
+            lng = city_info['base_lng'] + random.uniform(-0.02, 0.02)
+        elif state in STATE_CENTROIDS:
+            base_lat, base_lng = STATE_CENTROIDS[state]
+            lat = base_lat + random.uniform(-0.03, 0.03)
+            lng = base_lng + random.uniform(-0.03, 0.03)
+        else:
+            lat = 20.5937 + random.uniform(-0.05, 0.05)
+            lng = 78.9629 + random.uniform(-0.05, 0.05)
+    else:
+        try:
+            lat = float(lat)
+            lng = float(lng)
+        except (ValueError, TypeError):
+            lat = 20.5937
+            lng = 78.9629
+
+    survey_num = str(raw_data.get('survey_number') or raw_data.get('surveyNumber') or '').strip()
+    area_acres = raw_data.get('area_acres') or raw_data.get('areaAcres')
+    market_val = raw_data.get('market_value') or raw_data.get('marketValue')
+    land_type = raw_data.get('land_type') or raw_data.get('landType') or 'Residential'
+    land_use = raw_data.get('land_use') or raw_data.get('landUse') or 'General'
+    taluk = raw_data.get('taluk') or f"{district} Taluk"
+    village = raw_data.get('village') or 'Central Village'
+    status = raw_data.get('status') or 'clear'
+    encumbrance = raw_data.get('encumbrance') or 'None'
+    owner_name = raw_data.get('owner_name') or raw_data.get('ownerName') or 'Registered Landholder'
+
+    if not survey_num:
+        return jsonify({'error': 'survey_number is required'}), 400
+    if not district:
+        return jsonify({'error': 'district is required'}), 400
+    if area_acres is None or str(area_acres).strip() == '':
+        return jsonify({'error': 'area_acres is required'}), 400
+    if market_val is None or str(market_val).strip() == '':
+        return jsonify({'error': 'market_value is required'}), 400
+
+    try:
+        area_acres = float(area_acres)
+        market_val = float(market_val)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'area_acres and market_value must be numeric'}), 400
 
     db = get_db()
-    existing = db.execute("SELECT id FROM land_parcels WHERE survey_number=?", (data['survey_number'],)).fetchone()
-    if existing:
+    try:
+        existing = db.execute("SELECT id FROM land_parcels WHERE survey_number=?", (survey_num,)).fetchone()
+        if existing:
+            return jsonify({'error': f'Survey number {survey_num} already exists'}), 409
+
+        pid = str(uuid.uuid4())
+        now_iso = datetime.now().isoformat()
+        curr_yr = datetime.now().year
+
+        # Validate owner_id foreign key
+        owner_id = raw_data.get('current_owner_id')
+        if owner_id:
+            u = db.execute("SELECT id FROM users WHERE id=?", (owner_id,)).fetchone()
+            if not u:
+                owner_id = None
+        else:
+            owner_id = None
+
+        # 1. Insert Parcel
+        db.execute("""INSERT INTO land_parcels
+            (id, survey_number, district, taluk, village, area_acres, land_type, land_use,
+             current_owner_id, latitude, longitude, market_value, status, encumbrance, created_at, location_url)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                   (pid, survey_num, district, taluk, village,
+                    area_acres, land_type, land_use,
+                    owner_id, float(lat), float(lng),
+                    market_val, status, encumbrance,
+                    now_iso, location_url or None))
+
+        # 2. Dynamically Generate Initial 6-Year Historical Price Points
+        price_rows = []
+        for y in range(curr_yr - 5, curr_yr + 1):
+            hist_id = str(uuid.uuid4())
+            hist_mkt = round(market_val * ((1.095) ** (y - curr_yr)), -3)
+            hist_govt = round(hist_mkt * 0.65, -3)
+            price_rows.append((hist_id, pid, y, hist_mkt, hist_govt, now_iso))
+            db.execute("INSERT INTO price_history VALUES (?,?,?,?,?,?)", (hist_id, pid, y, hist_mkt, hist_govt, now_iso))
+
+        # 3. Insert Initial Ownership Record
+        oh_id = str(uuid.uuid4())
+        db.execute("INSERT INTO ownership_history VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                   (oh_id, pid, owner_name, 'XXXX-XXXX-XXXX', '98XXXXXXXX',
+                    f"{curr_yr-3}-04-01", None, 'Initial Registration', f"DD-{random.randint(1000,9999)}-{random.randint(100,999)}",
+                    market_val, 'First time digital registry entry'))
+
+        db.commit()
+    except Exception as e:
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
+    finally:
         db.close()
-        return jsonify({'error': 'Survey number already exists'}), 409
 
-    pid = str(uuid.uuid4())
-    now_iso = datetime.now().isoformat()
-    curr_yr = datetime.now().year
-    mkt_val = float(data['market_value'])
+    # 4. Sync dynamically to CSV files in data/
+    try:
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+        csv_file = os.path.join(data_dir, 'land_parcels.csv')
+        if os.path.exists(csv_file):
+            with open(csv_file, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([pid, survey_num, district, taluk, village,
+                                 area_acres, land_type, land_use, owner_id or '',
+                                 float(lat), float(lng), market_val, status,
+                                 encumbrance, now_iso])
+    except Exception as e:
+        print("CSV Sync Warning:", e)
 
-    # 1. Insert Parcel
-    db.execute("""INSERT INTO land_parcels VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-               (pid, data['survey_number'], data['district'], data['taluk'], data['village'],
-                float(data['area_acres']), data['land_type'], data['land_use'],
-                data.get('current_owner_id'), float(data['latitude']), float(data['longitude']),
-                mkt_val, data.get('status', 'clear'), data.get('encumbrance', 'None'),
-                now_iso))
+    # Compute immediate dynamic ML forecast
+    p_data = {
+        'id': pid, 'survey_number': survey_num, 'district': district,
+        'area_acres': float(area_acres), 'market_value': market_val, 'status': status
+    }
+    history_list = [{'year': r[2], 'market_value': r[3], 'govt_value': r[4]} for r in price_rows]
+    try:
+        ml_analysis = compute_ml_price_regression(p_data, history_list)
+    except Exception:
+        ml_analysis = {'roi_5yr': 45.0, 'rating': 'Standard Land Parcel'}
 
-    # 2. Dynamically Generate Initial 6-Year Historical Price Points
-    price_rows = []
-    for y in range(curr_yr - 5, curr_yr + 1):
-        hist_id = str(uuid.uuid4())
-        hist_mkt = round(mkt_val * ((1.095) ** (y - curr_yr)), -3)
-        hist_govt = round(hist_mkt * 0.65, -3)
-        price_rows.append((hist_id, pid, y, hist_mkt, hist_govt, now_iso))
-        db.execute("INSERT INTO price_history VALUES (?,?,?,?,?,?)", (hist_id, pid, y, hist_mkt, hist_govt, now_iso))
-
-    # 3. Insert Initial Ownership Record
-    owner_name = data.get('owner_name') or 'Registered Landholder'
-    oh_id = str(uuid.uuid4())
-    db.execute("INSERT INTO ownership_history VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-               (oh_id, pid, owner_name, 'XXXX-XXXX-XXXX', '98XXXXXXXX',
-                f"{curr_yr-3}-04-01", None, 'Initial Registration', f"DD-{random.randint(1000,9999)}-{random.randint(100,999)}",
-                mkt_val, 'First time digital registry entry'))
-
-    db.commit()
-    db.close()
+    return jsonify({'success': True, 'id': pid, 'latitude': float(lat), 'longitude': float(lng), 'location_url': location_url, 'ml_analysis': ml_analysis}), 201
 
     # 4. Sync dynamically to CSV files in data/
     try:
@@ -738,40 +912,57 @@ def file_grievance():
     data = request.json or {}
     required = ['citizen_name', 'citizen_email', 'citizen_phone', 'category', 'subject', 'description']
     for f in required:
-        if not data.get(f, '').strip():
+        val = data.get(f)
+        if val is None or not str(val).strip():
             return jsonify({'error': f'{f} is required'}), 400
 
     # Auto-detect priority
     high_keywords = ['fraud', 'corruption', 'bribe', 'fake', 'encroach', 'illegal', 'dispute', 'urgent']
-    desc = (data.get('description', '') + data.get('subject', '')).lower()
+    desc = (str(data.get('description') or '') + ' ' + str(data.get('subject') or '')).lower()
     priority = 'high' if any(kw in desc for kw in high_keywords) else 'medium'
 
     gid = str(uuid.uuid4())
     year = datetime.now().year
     ticket_id = f"GRV-{year}-{gid[:8].upper()}"
 
-    plot_lat = float(data['plot_lat']) if data.get('plot_lat') else None
-    plot_lng = float(data['plot_lng']) if data.get('plot_lng') else None
-    plot_address = data.get('plot_address')
+    plot_lat = None
+    if data.get('plot_lat') is not None and str(data.get('plot_lat')).strip() != '':
+        try:
+            plot_lat = float(data['plot_lat'])
+        except (ValueError, TypeError):
+            plot_lat = None
+
+    plot_lng = None
+    if data.get('plot_lng') is not None and str(data.get('plot_lng')).strip() != '':
+        try:
+            plot_lng = float(data['plot_lng'])
+        except (ValueError, TypeError):
+            plot_lng = None
+
+    plot_address = data.get('plot_address') or None
 
     db = get_db()
-    
-    # Resolve parcel ID from survey number if provided
-    parcel_ref = data.get('parcel_id', '').strip()
-    real_parcel_id = None
-    if parcel_ref:
-        p_row = db.execute("SELECT id FROM land_parcels WHERE survey_number = ? OR id = ?", (parcel_ref, parcel_ref)).fetchone()
-        if p_row:
-            real_parcel_id = p_row['id']
+    try:
+        # Resolve parcel ID from survey number if provided
+        parcel_ref = str(data.get('parcel_id') or '').strip()
+        real_parcel_id = None
+        if parcel_ref:
+            p_row = db.execute("SELECT id FROM land_parcels WHERE survey_number = ? OR id = ?", (parcel_ref, parcel_ref)).fetchone()
+            if p_row:
+                real_parcel_id = p_row['id']
 
-    db.execute("""INSERT INTO grievances VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-               (gid, ticket_id, data['citizen_name'], data['citizen_email'], data['citizen_phone'],
-                real_parcel_id, data['category'], data['subject'], data['description'],
-                'submitted', priority, None, None,
-                plot_lat, plot_lng, plot_address,
-                datetime.now().isoformat(), datetime.now().isoformat(), None))
-    db.commit()
-    db.close()
+        now_iso = datetime.now().isoformat()
+        db.execute("""INSERT INTO grievances VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                   (gid, ticket_id, str(data['citizen_name']).strip(), str(data['citizen_email']).strip(), str(data['citizen_phone']).strip(),
+                    real_parcel_id, str(data['category']).strip(), str(data['subject']).strip(), str(data['description']).strip(),
+                    'submitted', priority, None, None,
+                    plot_lat, plot_lng, plot_address,
+                    now_iso, now_iso, None))
+        db.commit()
+    except Exception as e:
+        return jsonify({'error': f'Failed to file grievance: {str(e)}'}), 500
+    finally:
+        db.close()
 
     return jsonify({'success': True, 'ticket_id': ticket_id, 'priority': priority}), 201
 

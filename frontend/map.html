@@ -36,14 +36,23 @@
         }
 
         .site-header {
-            background: var(--glass-bg, rgba(15, 23, 42, 0.85));
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
-            padding: 0.75rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
+            position: relative !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            height: auto !important;
+            min-height: 56px !important;
+            flex-shrink: 0 !important;
+            background: var(--glass-bg, rgba(15, 23, 42, 0.95)) !important;
+            backdrop-filter: blur(12px) !important;
+            border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1)) !important;
+            padding: 0.75rem 1.5rem !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            z-index: 1000 !important;
         }
 
         .logo {
@@ -823,7 +832,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Base URL for API calls
-            const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5001' : '';
+            const API_BASE = window.location.protocol === 'file:' ? 'http://127.0.0.1:5000' : '';
 
             // Initialize map with Pan-India center
             const map = L.map('map', {
@@ -900,6 +909,7 @@
                 if (landType) params.append('land_type', landType);
                 if (status) params.append('status', status);
                 if (search) params.append('search', search);
+                params.append('_t', Date.now());
 
                 try {
                     const res = await fetch(`${API_BASE}/api/lands/all_markers?${params.toString()}`);

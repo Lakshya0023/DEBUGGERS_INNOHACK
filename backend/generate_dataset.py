@@ -40,14 +40,14 @@ DISTRICTS = {
         "survey_prefix": "DLH"
     },
     "Chennai": {
-        "state": "Tamil Nadu", "base_lat": 13.0827, "base_lng": 80.2707, "spread": 0.15,
+        "state": "Tamil Nadu", "base_lat": 13.0400, "base_lng": 80.1800, "spread": 0.06,
         "price_base": 6_000_000, "price_max": 60_000_000,
         "taluks": ["Chennai North", "Chennai South", "Tambaram", "Sholinganallur", "Ambattur"],
         "localities": ["T Nagar","Adyar","Anna Nagar","Velachery","Tambaram","Porur","Chromepet","Perambur","Royapettah","Mylapore","Guindy","Sholinganallur","Perungudi","Ambattur","Avadi"],
         "survey_prefix": "CHN"
     },
     "Mumbai": {
-        "state": "Maharashtra", "base_lat": 19.0760, "base_lng": 72.8777, "spread": 0.12,
+        "state": "Maharashtra", "base_lat": 19.1000, "base_lng": 72.9000, "spread": 0.05,
         "price_base": 15_000_000, "price_max": 200_000_000,
         "taluks": ["Mumbai City", "Mumbai Suburban", "Andheri", "Borivali", "Kurla"],
         "localities": ["Andheri","Bandra","Borivali","Dadar","Goregaon","Malad","Kandivali","Kurla","Ghatkopar","Mulund","Thane","Powai","Vikhroli","Chembur","Sion","Worli","Lower Parel","Prabhadevi"],
@@ -110,7 +110,7 @@ DISTRICTS = {
         "survey_prefix": "PAT"
     },
     "Visakhapatnam": {
-        "state": "Andhra Pradesh", "base_lat": 17.6868, "base_lng": 83.2185, "spread": 0.16,
+        "state": "Andhra Pradesh", "base_lat": 17.7200, "base_lng": 83.2200, "spread": 0.06,
         "price_base": 2_500_000, "price_max": 35_000_000,
         "taluks": ["Visakhapatnam Urban", "Visakhapatnam Rural", "Gajuwaka", "Anakapalle"],
         "localities": ["MVP Colony","Siripuram","Madhurawada","Gajuwaka","Rushikonda","Seethammadhara","Dwaraka Nagar","Pendurthi","Bheemunipatnam"],
@@ -223,7 +223,8 @@ def generate_csv_and_sqlite():
                     "land_type": ltype, "land_use": luse, "current_owner_id": owner_id,
                     "latitude": round(lat, 6), "longitude": round(lng, 6),
                     "market_value": price, "status": status, "encumbrance": enc,
-                    "created_at": datetime.now().isoformat()
+                    "created_at": datetime.now().isoformat(),
+                    "location_url": None
                 })
 
                 # Ownership history
@@ -338,6 +339,7 @@ def generate_csv_and_sqlite():
         current_owner_id TEXT, latitude REAL NOT NULL, longitude REAL NOT NULL,
         market_value REAL NOT NULL, status TEXT DEFAULT 'clear',
         encumbrance TEXT DEFAULT 'None', created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        location_url TEXT,
         FOREIGN KEY(current_owner_id) REFERENCES users(id)
     )''')
 
@@ -382,7 +384,7 @@ def generate_csv_and_sqlite():
     for u in users:
         c.execute("INSERT INTO users VALUES (?,?,?,?,?,?,?,?)", list(u.values()))
     for p in parcels:
-        c.execute("INSERT INTO land_parcels VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", list(p.values()))
+        c.execute("INSERT INTO land_parcels VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", list(p.values()))
     for o in ownership:
         c.execute("INSERT INTO ownership_history VALUES (?,?,?,?,?,?,?,?,?,?,?)", list(o.values()))
     for ph in price_histories:
