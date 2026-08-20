@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # BhoomiSeva — Digital Land Record Management System
 ## भूमि सेवा पोर्टल
 
@@ -134,3 +135,7 @@ hac/
 ---
 
 *Built with ❤️ for the Hackathon — Digital Land Record Management & Grievance Redressal System*
+=======
+# DEBUGGERS_INNOHACK
+LAND MANAGEMENT SYSTEM
+>>>>>>> lakshya/main
