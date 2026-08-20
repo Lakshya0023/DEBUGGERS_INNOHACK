@@ -31,6 +31,7 @@ def init_db():
         current_owner_id TEXT, latitude REAL NOT NULL, longitude REAL NOT NULL,
         market_value REAL NOT NULL, status TEXT DEFAULT 'clear',
         encumbrance TEXT DEFAULT 'None', created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        location_url TEXT,
         FOREIGN KEY(current_owner_id) REFERENCES users(id)
     )''')
 
@@ -81,6 +82,12 @@ def init_db():
 
     conn.commit()
 
+    # Migration: add location_url column if it doesn't exist (for existing databases)
+    existing_cols = [row[1] for row in c.execute("PRAGMA table_info(land_parcels)").fetchall()]
+    if 'location_url' not in existing_cols:
+        c.execute("ALTER TABLE land_parcels ADD COLUMN location_url TEXT")
+        conn.commit()
+
     existing = c.execute("SELECT COUNT(*) FROM land_parcels").fetchone()[0]
     if existing < 500:
         data_csv = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'land_parcels.csv')
@@ -90,6 +97,7 @@ def init_db():
             seed_data(conn, c)
 
     conn.close()
+
 
 def load_from_csv(conn):
     """Loads dataset from CSV files into SQLite database tables."""

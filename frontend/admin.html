@@ -576,13 +576,12 @@
                             <label>Land Use</label>
                             <input type="text" class="form-control" name="landUse" placeholder="e.g. Farming">
                         </div>
-                        <div class="form-group">
-                            <label>Latitude</label>
-                            <input type="number" step="any" class="form-control" name="latitude" placeholder="12.9716" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Longitude</label>
-                            <input type="number" step="any" class="form-control" name="longitude" placeholder="77.5946" required>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>📍 Google Maps Location URL</label>
+                            <input type="url" class="form-control" name="locationUrl"
+                              placeholder="Paste Google Maps link, e.g. https://www.google.com/maps/place/.../@12.97,77.59,15z"
+                              required>
+                            <small style="color:#64748b; display:block; margin-top:4px;">Open Google Maps → right-click the exact location → <b>Copy link</b>. Lat/Lng will be auto-extracted from the URL.</small>
                         </div>
                         <div class="form-group">
                             <label>Market Value (₹)</label>
@@ -992,23 +991,53 @@
             }
         }
 
+        // --- Helper: extract lat/lng from a Google Maps URL (client-side) ---
+        function extractLatLngFromUrl(url) {
+            if (!url) return null;
+            // @lat,lng,zoom — most common share link
+            let m = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+            // ?q=lat,lng
+            m = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+            // ll=lat,lng
+            m = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+            if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+            // Generic decimal pair in URL
+            m = url.match(/(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+            if (m) {
+                const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+                if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180)
+                    return { lat, lng };
+            }
+            return null;
+        }
+
         // --- Add Land Submission Logic ---
         async function handleAddLandSubmit(e) {
             e.preventDefault();
             const form = e.target;
             const submitBtn = form.querySelector('button[type="submit"]');
-            
-            submitBtn.textContent = 'Saving...';
-            submitBtn.disabled = true;
 
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
-            
+
+            // Extract lat/lng from the provided Google Maps URL
+            const coords = extractLatLngFromUrl(data.locationUrl || '');
+            if (!coords) {
+                alert('❌ Could not extract coordinates from the Google Maps URL.\n\nPlease use a full link like:\nhttps://www.google.com/maps/place/.../@12.9716,77.5946,15z\n\nShort links (maps.app.goo.gl) are not supported — please open them in a browser first, then copy the full URL from the address bar.');
+                return;
+            }
+
             // Format numeric values
             data.areaAcres = parseFloat(data.areaAcres);
-            data.latitude = parseFloat(data.latitude);
-            data.longitude = parseFloat(data.longitude);
             data.marketValue = parseFloat(data.marketValue);
+            // Attach extracted coordinates
+            data.latitude = coords.lat;
+            data.longitude = coords.lng;
+
+            submitBtn.textContent = 'Saving...';
+            submitBtn.disabled = true;
 
             try {
                 const res = await fetch(`${apiBase}/lands`, {
@@ -1019,25 +1048,21 @@
                     },
                     body: JSON.stringify(data)
                 });
-                
-                if (!res.ok) throw new Error('Save API failed');
-                
-                alert('Land record added successfully!');
-                form.reset();
-                toggleAddForm(); 
-                fetchAnalytics(); 
 
-            } catch(e) {
-                console.warn("API Add Land failed, simulating success locally", e);
-                // Simulate success
-                alert('Land record added successfully (Simulated)!');
+                const result = await res.json();
+                if (!res.ok) {
+                    alert(`❌ Failed to save land record:\n${result.error || 'Unknown error'}`);
+                    return;
+                }
+
+                alert(`✅ Land record added successfully!\nCoordinates: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}\nThe parcel will now appear on the Explore Map.`);
                 form.reset();
                 toggleAddForm();
-                // Optionally increase total parcels mock by 1
-                const kpiTotal = document.getElementById('kpiTotalParcels');
-                if(kpiTotal.textContent !== '-') {
-                    kpiTotal.textContent = (parseInt(kpiTotal.textContent.replace(/,/g, '')) + 1).toLocaleString('en-IN');
-                }
+                fetchAnalytics();
+
+            } catch(err) {
+                console.error("API Add Land failed:", err);
+                alert('❌ Could not connect to the server. Please ensure the backend is running and try again.');
             } finally {
                 submitBtn.textContent = 'Save Land Record';
                 submitBtn.disabled = false;

@@ -1050,6 +1050,20 @@
                 document.getElementById('btnViewServices').href = `knowledge.html?survey=${encodeURIComponent(parcel.survey_number)}&district=${encodeURIComponent(parcel.district)}`;
                 document.getElementById('btnFileGrievance').href = `grievance.html?survey=${encodeURIComponent(parcel.survey_number)}&parcel_id=${encodeURIComponent(parcel.id)}`;
 
+                // Google Maps link — use stored URL if available, otherwise build from coordinates
+                const mapsLinkEl = document.getElementById('btnViewOnMaps');
+                if (mapsLinkEl) {
+                    if (parcel.location_url) {
+                        mapsLinkEl.href = parcel.location_url;
+                        mapsLinkEl.style.display = 'inline-flex';
+                    } else if (parcel.latitude && parcel.longitude) {
+                        mapsLinkEl.href = `https://www.google.com/maps?q=${parcel.latitude},${parcel.longitude}`;
+                        mapsLinkEl.style.display = 'inline-flex';
+                    } else {
+                        mapsLinkEl.style.display = 'none';
+                    }
+                }
+
                 // Update Timeline
                 const timelineEl = document.getElementById('pTimeline');
                 timelineEl.innerHTML = '';

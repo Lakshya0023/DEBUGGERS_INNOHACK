@@ -94,6 +94,36 @@ def require_admin(f):
         return f(*args, **kwargs)
     return decorated
 
+
+# ─────────────────────────────────────────────
+# LOCATION URL HELPER
+# ─────────────────────────────────────────────
+def parse_latlng_from_url(url):
+    """Extract lat, lng from a Google Maps URL.
+    Handles formats like:
+      - https://www.google.com/maps/place/.../@12.9716,77.5946,15z
+      - https://maps.google.com/?q=12.9716,77.5946
+      - https://www.google.com/maps?ll=12.9716,77.5946
+    """
+    import re as _re
+    if not url:
+        return None, None
+    m = _re.search(r"@(-?\d+\.?\d*),(-?\d+\.?\d*)", url)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    m = _re.search(r"[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)", url)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    m = _re.search(r"ll=(-?\d+\.?\d*),(-?\d+\.?\d*)", url)
+    if m:
+        return float(m.group(1)), float(m.group(2))
+    m = _re.search(r"(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)", url)
+    if m:
+        lat, lng = float(m.group(1)), float(m.group(2))
+        if -90 <= lat <= 90 and -180 <= lng <= 180:
+            return lat, lng
+    return None, None
+
 # ─────────────────────────────────────────────
 # AUTH ROUTES
 # ─────────────────────────────────────────────
@@ -498,6 +528,10 @@ def get_land_detail(parcel_id):
 @require_admin
 def create_land():
     raw_data = request.json or {}
+    # -- Extract location_url and auto-derive lat/lng from it
+    location_url = raw_data.get('location_url') or raw_data.get('locationUrl', '')
+    url_lat, url_lng = parse_latlng_from_url(location_url)
+
     data = {
         'survey_number': raw_data.get('survey_number') or raw_data.get('surveyNumber'),
         'state': raw_data.get('state'),
@@ -507,17 +541,21 @@ def create_land():
         'area_acres': raw_data.get('area_acres') or raw_data.get('areaAcres'),
         'land_type': raw_data.get('land_type') or raw_data.get('landType', 'Residential'),
         'land_use': raw_data.get('land_use') or raw_data.get('landUse', 'General'),
-        'latitude': raw_data.get('latitude'),
-        'longitude': raw_data.get('longitude'),
+        # Prefer explicitly-provided lat/lng; fall back to URL-extracted values
+        'latitude':  raw_data.get('latitude')  or url_lat,
+        'longitude': raw_data.get('longitude') or url_lng,
+        'location_url': location_url or None,
         'market_value': raw_data.get('market_value') or raw_data.get('marketValue'),
         'status': raw_data.get('status', 'clear'),
         'encumbrance': raw_data.get('encumbrance', 'None'),
         'owner_name': raw_data.get('owner_name') or raw_data.get('ownerName', 'Registered Landholder')
     }
-    
+
     required = ['survey_number', 'district', 'area_acres', 'land_type', 'latitude', 'longitude', 'market_value']
     for f in required:
         if not data.get(f):
+            if f in ('latitude', 'longitude'):
+                return jsonify({'error': 'Could not extract coordinates from the location URL. Please use a full Google Maps link (not a short goo.gl link).'}), 400
             return jsonify({'error': f'{f} is required'}), 400
 
     db = get_db()
@@ -531,13 +569,16 @@ def create_land():
     curr_yr = datetime.now().year
     mkt_val = float(data['market_value'])
 
-    # 1. Insert Parcel
-    db.execute("""INSERT INTO land_parcels VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+    # 1. Insert Parcel (named columns to safely include location_url)
+    db.execute("""INSERT INTO land_parcels
+        (id, survey_number, district, taluk, village, area_acres, land_type, land_use,
+         current_owner_id, latitude, longitude, market_value, status, encumbrance, created_at, location_url)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                (pid, data['survey_number'], data['district'], data['taluk'], data['village'],
                 float(data['area_acres']), data['land_type'], data['land_use'],
                 data.get('current_owner_id'), float(data['latitude']), float(data['longitude']),
                 mkt_val, data.get('status', 'clear'), data.get('encumbrance', 'None'),
-                now_iso))
+                now_iso, data.get('location_url')))
 
     # 2. Dynamically Generate Initial 6-Year Historical Price Points
     price_rows = []
@@ -582,7 +623,7 @@ def create_land():
     history_list = [{'year': r[2], 'market_value': r[3], 'govt_value': r[4]} for r in price_rows]
     ml_analysis = compute_ml_price_regression(p_data, history_list)
 
-    return jsonify({'success': True, 'id': pid, 'ml_analysis': ml_analysis}), 201
+    return jsonify({'success': True, 'id': pid, 'latitude': float(data['latitude']), 'longitude': float(data['longitude']), 'location_url': data.get('location_url'), 'ml_analysis': ml_analysis}), 201
 
 @app.route('/api/lands/<parcel_id>', methods=['PUT'])
 @require_admin
@@ -595,8 +636,14 @@ def update_land(parcel_id):
         return jsonify({'error': 'Not found'}), 404
 
     fields = ['district', 'taluk', 'village', 'area_acres', 'land_type', 'land_use',
-              'market_value', 'status', 'encumbrance', 'latitude', 'longitude']
+              'market_value', 'status', 'encumbrance', 'latitude', 'longitude', 'location_url']
     updates = {f: data[f] for f in fields if f in data}
+    # If a new location_url is supplied without explicit lat/lng, auto-extract coordinates
+    if 'location_url' in updates and 'latitude' not in updates:
+        u_lat, u_lng = parse_latlng_from_url(updates['location_url'])
+        if u_lat and u_lng:
+            updates['latitude'] = u_lat
+            updates['longitude'] = u_lng
     if updates:
         set_clause = ', '.join([f'{k}=?' for k in updates])
         db.execute(f"UPDATE land_parcels SET {set_clause} WHERE id=?",
@@ -956,7 +1003,7 @@ def all_markers():
     query = """
         SELECT lp.id, lp.survey_number, lp.latitude, lp.longitude, lp.land_type, 
                lp.status, lp.market_value, lp.village, lp.district, lp.area_acres,
-               u.name as owner_name
+               lp.location_url, u.name as owner_name
         FROM land_parcels lp
         LEFT JOIN users u ON lp.current_owner_id = u.id
         WHERE lp.latitude IS NOT NULL AND lp.longitude IS NOT NULL
