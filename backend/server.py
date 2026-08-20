@@ -4,6 +4,9 @@ import math
 import uuid
 import json
 import hashlib
+import random
+import csv
+import random
 from datetime import datetime, timedelta
 from functools import wraps
 import pandas as pd
@@ -64,7 +67,7 @@ CORS(app)
 SECRET = 'LAND_RECORDS_SECRET_2024_GOV_IN'
 
 # ─────────────────────────────────────────────
-# JWT (minimal, no external library)
+# JWT (minimal, no external library) 
 # ─────────────────────────────────────────────
 import base64
 import hmac
@@ -133,28 +136,10 @@ def require_admin(f):
         return f(*args, **kwargs)
     return decorated
 
+
 # ─────────────────────────────────────────────
 # LOCATION URL HELPER
 # ─────────────────────────────────────────────
-def resolve_maps_link(short_url: str):
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    try:
-        resp = requests.get(short_url, headers=headers, allow_redirects=True, timeout=6)
-        final_url = resp.url
-
-        m = re.search(r'@(-?\d+\.\d+),(-?\d+\.\d+)', final_url)
-        if not m:
-            m = re.search(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)', final_url)
-        if not m:
-            m = re.search(r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)', resp.text)
-
-        if not m:
-            return None
-
-        return {"lat": float(m.group(1)), "lng": float(m.group(2)), "resolved_url": final_url}
-    except Exception:
-        return None
-
 def parse_latlng_from_url(url):
     """Extract lat, lng from a Google Maps URL.
     Handles formats like:
@@ -202,11 +187,34 @@ def login():
     if not email or not password:
         return jsonify({'error': 'Email and password required'}), 400
 
+    hashed = hash_password(password)
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+    
+    # Fallback sync from CSV if user exists in CSV but not in DB
+    if not user:
+        try:
+            import csv
+            data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+            csv_file = os.path.join(data_dir, 'users.csv')
+            if os.path.exists(csv_file):
+                with open(csv_file, 'r', encoding='utf-8') as f:
+                    reader = csv.DictReader(f)
+                    for r in reader:
+                        if r.get('email', '').strip().lower() == email:
+                            db.execute("INSERT OR REPLACE INTO users VALUES (?,?,?,?,?,?,?,?)",
+                                       (r['id'], r['name'], r['email'], r.get('phone', ''),
+                                        r['password'], r.get('role', 'citizen'), r.get('aadhaar', ''),
+                                        r.get('created_at', datetime.now().isoformat())))
+                            db.commit()
+                            user = db.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
+                            break
+        except Exception as e:
+            print("CSV Auth Check Error:", e)
+
     db.close()
 
-    if not user or user['password'] != hash_password(password):
+    if not user or user['password'] != hashed:
         return jsonify({'error': 'Invalid credentials'}), 401
 
     token = create_token({
@@ -242,10 +250,30 @@ def register():
         return jsonify({'error': 'Email already registered'}), 409
 
     uid = str(uuid.uuid4())
+    hashed_pass = hash_password(password)
+    now_iso = datetime.now().isoformat()
+
     db.execute("INSERT INTO users VALUES (?,?,?,?,?,?,?,?)",
-               (uid, name, email, phone, hash_password(password), 'citizen', aadhaar, datetime.now().isoformat()))
+               (uid, name, email, phone, hashed_pass, 'citizen', aadhaar, now_iso))
     db.commit()
     db.close()
+
+    # Persist directly to data/users.csv
+    try:
+        import csv
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+        csv_file = os.path.join(data_dir, 'users.csv')
+        if os.path.exists(csv_file):
+            with open(csv_file, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow([uid, name, email, phone, hashed_pass, 'citizen', aadhaar, now_iso])
+        else:
+            with open(csv_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(['id', 'name', 'email', 'phone', 'password', 'role', 'aadhaar', 'created_at'])
+                writer.writerow([uid, name, email, phone, hashed_pass, 'citizen', aadhaar, now_iso])
+    except Exception as e:
+        print("User CSV Persistence Warning:", e)
 
     token = create_token({'id': uid, 'name': name, 'email': email, 'role': 'citizen'})
     return jsonify({'token': token, 'user': {'id': uid, 'name': name, 'email': email, 'role': 'citizen', 'phone': phone}}), 201
@@ -595,7 +623,7 @@ def get_land_detail(parcel_id):
 def create_land():
     raw_data = request.json or {}
     location_url = raw_data.get('location_url') or raw_data.get('locationUrl', '')
-    url_lat, url_lng = parse_latlng_from_url(location_url) if 'parse_latlng_from_url' in globals() else (None, None)
+    url_lat, url_lng = parse_latlng_from_url(location_url)
 
     lat = raw_data.get('latitude')
     if lat is None or str(lat).strip() == '':
@@ -673,7 +701,7 @@ def create_land():
         else:
             owner_id = None
 
-        # 1. Insert Parcel
+        # 1. Insert Parcel (named columns to safely include location_url)
         db.execute("""INSERT INTO land_parcels
             (id, survey_number, district, taluk, village, area_acres, land_type, land_use,
              current_owner_id, latitude, longitude, market_value, status, encumbrance, created_at, location_url)
@@ -733,31 +761,6 @@ def create_land():
 
     return jsonify({'success': True, 'id': pid, 'latitude': float(lat), 'longitude': float(lng), 'location_url': location_url, 'ml_analysis': ml_analysis}), 201
 
-    # 4. Sync dynamically to CSV files in data/
-    try:
-        import csv
-        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
-        csv_file = os.path.join(data_dir, 'land_parcels.csv')
-        if os.path.exists(csv_file):
-            with open(csv_file, 'a', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                writer.writerow([pid, data['survey_number'], data['district'], data['taluk'], data['village'],
-                                 data['area_acres'], data['land_type'], data['land_use'], data.get('current_owner_id', ''),
-                                 data['latitude'], data['longitude'], mkt_val, data.get('status', 'clear'),
-                                 data.get('encumbrance', 'None'), now_iso])
-    except Exception as e:
-        print("CSV Sync Warning:", e)
-
-    # Compute immediate dynamic ML forecast
-    p_data = {
-        'id': pid, 'survey_number': data['survey_number'], 'district': data['district'],
-        'area_acres': float(data['area_acres']), 'market_value': mkt_val, 'status': data.get('status', 'clear')
-    }
-    history_list = [{'year': r[2], 'market_value': r[3], 'govt_value': r[4]} for r in price_rows]
-    ml_analysis = compute_ml_price_regression(p_data, history_list)
-
-    return jsonify({'success': True, 'id': pid, 'ml_analysis': ml_analysis}), 201
-
 @app.route('/api/lands/<parcel_id>', methods=['PUT'])
 @require_admin
 def update_land(parcel_id):
@@ -769,8 +772,14 @@ def update_land(parcel_id):
         return jsonify({'error': 'Not found'}), 404
 
     fields = ['district', 'taluk', 'village', 'area_acres', 'land_type', 'land_use',
-              'market_value', 'status', 'encumbrance', 'latitude', 'longitude']
+              'market_value', 'status', 'encumbrance', 'latitude', 'longitude', 'location_url']
     updates = {f: data[f] for f in fields if f in data}
+    # If a new location_url is supplied without explicit lat/lng, auto-extract coordinates
+    if 'location_url' in updates and 'latitude' not in updates:
+        u_lat, u_lng = parse_latlng_from_url(updates['location_url'])
+        if u_lat and u_lng:
+            updates['latitude'] = u_lat
+            updates['longitude'] = u_lng
     if updates:
         set_clause = ', '.join([f'{k}=?' for k in updates])
         db.execute(f"UPDATE land_parcels SET {set_clause} WHERE id=?",
@@ -786,8 +795,12 @@ def update_land(parcel_id):
 def get_states():
     if STATES_DISTRICTS:
         return jsonify(sorted(list(STATES_DISTRICTS.keys())))
-    rows = get_db().execute("SELECT DISTINCT state FROM locations WHERE state IS NOT NULL ORDER BY state").fetchall()
-    return jsonify([r['state'] for r in rows])
+    db = get_db()
+    try:
+        rows = db.execute("SELECT DISTINCT state FROM locations WHERE state IS NOT NULL ORDER BY state").fetchall()
+        return jsonify([r['state'] for r in rows])
+    finally:
+        db.close()
 
 @app.route('/api/locations/districts')
 def districts():
@@ -799,26 +812,38 @@ def districts():
         for d_list in STATES_DISTRICTS.values():
             all_d.update(d_list)
         return jsonify(sorted(list(all_d)))
-    rows = get_db().execute("SELECT DISTINCT district FROM locations ORDER BY district").fetchall()
-    return jsonify([r['district'] for r in rows])
+    db = get_db()
+    try:
+        rows = db.execute("SELECT DISTINCT district FROM locations ORDER BY district").fetchall()
+        return jsonify([r['district'] for r in rows])
+    finally:
+        db.close()
 
 @app.route('/api/locations/taluks')
 def taluks():
     district = request.args.get('district')
-    rows = get_db().execute(
-        "SELECT DISTINCT taluk FROM locations WHERE district=? ORDER BY taluk", (district,)
-    ).fetchall()
-    return jsonify([r['taluk'] for r in rows])
+    db = get_db()
+    try:
+        rows = db.execute(
+            "SELECT DISTINCT taluk FROM locations WHERE district=? ORDER BY taluk", (district,)
+        ).fetchall()
+        return jsonify([r['taluk'] for r in rows])
+    finally:
+        db.close()
 
 @app.route('/api/locations/villages')
 def villages():
     district = request.args.get('district')
     taluk = request.args.get('taluk')
-    rows = get_db().execute(
-        "SELECT DISTINCT village FROM locations WHERE district=? AND taluk=? ORDER BY village",
-        (district, taluk)
-    ).fetchall()
-    return jsonify([r['village'] for r in rows])
+    db = get_db()
+    try:
+        rows = db.execute(
+            "SELECT DISTINCT village FROM locations WHERE district=? AND taluk=? ORDER BY village",
+            (district, taluk)
+        ).fetchall()
+        return jsonify([r['village'] for r in rows])
+    finally:
+        db.close()
 
 
 def resolve_maps_link(short_url: str):
@@ -842,8 +867,9 @@ def resolve_maps_link(short_url: str):
 
 @app.route('/api/resolve-location', methods=['POST'])
 def resolve_location_route():
-    url = request.json.get('url', '').strip()
-    if 'google.com/maps' not in url and 'goo.gl' not in url:
+    data = request.json or {}
+    url = str(data.get('url') or '').strip()
+    if 'google.com/maps' not in url and 'goo.gl' not in url and 'maps.app' not in url:
         return jsonify({"error": "Not a Google Maps link"}), 400
     result = resolve_maps_link(url)
     if not result:
@@ -855,57 +881,60 @@ def resolve_location_route():
 # ─────────────────────────────────────────────
 @app.route('/api/grievances', methods=['GET'])
 def get_grievances():
-    status = request.args.get('status', '').strip()
-    category = request.args.get('category', '').strip()
-    search = request.args.get('search', '').strip()
+    status = str(request.args.get('status') or '').strip()
+    category = str(request.args.get('category') or '').strip()
+    search = str(request.args.get('search') or '').strip()
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('per_page', 20))
     offset = (page - 1) * per_page
 
     db = get_db()
-    query = """
-        SELECT g.*, lp.survey_number, lp.village
-        FROM grievances g
-        LEFT JOIN land_parcels lp ON g.parcel_id = lp.id
-        WHERE 1=1
-    """
-    params = []
+    try:
+        query = """
+            SELECT g.*, lp.survey_number, lp.village
+            FROM grievances g
+            LEFT JOIN land_parcels lp ON g.parcel_id = lp.id
+            WHERE 1=1
+        """
+        params = []
 
-    if status:
-        query += " AND g.status = ?"
-        params.append(status)
-    if category:
-        query += " AND g.category = ?"
-        params.append(category)
-    if search:
-        query += " AND (g.ticket_id LIKE ? OR g.citizen_name LIKE ? OR g.subject LIKE ?)"
-        params += [f'%{search}%'] * 3
+        if status:
+            query += " AND g.status = ?"
+            params.append(status)
+        if category:
+            query += " AND g.category = ?"
+            params.append(category)
+        if search:
+            query += " AND (g.ticket_id LIKE ? OR g.citizen_name LIKE ? OR g.subject LIKE ?)"
+            params += [f'%{search}%'] * 3
 
-    total = db.execute(f"SELECT COUNT(*) FROM ({query})", params).fetchone()[0]
-    grievances = db.execute(query + f" ORDER BY g.created_at DESC LIMIT {per_page} OFFSET {offset}", params).fetchall()
-    db.close()
-
-    return jsonify({
-        'total': total, 'page': page, 'per_page': per_page,
-        'pages': math.ceil(max(total, 1) / per_page),
-        'data': rows_to_list(grievances)
-    })
+        total = db.execute(f"SELECT COUNT(*) FROM ({query})", params).fetchone()[0]
+        grievances = db.execute(query + f" ORDER BY g.created_at DESC LIMIT {per_page} OFFSET {offset}", params).fetchall()
+        return jsonify({
+            'total': total, 'page': page, 'per_page': per_page,
+            'pages': math.ceil(max(total, 1) / per_page),
+            'data': rows_to_list(grievances)
+        })
+    finally:
+        db.close()
 
 @app.route('/api/grievances/track/<ticket_id>', methods=['GET'])
 def track_grievance(ticket_id):
     db = get_db()
-    ticket_id = ticket_id.strip().upper()
-    g_row = db.execute("""
-        SELECT gr.*, lp.survey_number, lp.village
-        FROM grievances gr
-        LEFT JOIN land_parcels lp ON gr.parcel_id = lp.id
-        WHERE UPPER(gr.ticket_id) = ?
-    """, (ticket_id,)).fetchone()
-    db.close()
+    try:
+        ticket_id = str(ticket_id or '').strip().upper()
+        g_row = db.execute("""
+            SELECT gr.*, lp.survey_number, lp.village
+            FROM grievances gr
+            LEFT JOIN land_parcels lp ON gr.parcel_id = lp.id
+            WHERE UPPER(gr.ticket_id) = ?
+        """, (ticket_id,)).fetchone()
 
-    if not g_row:
-        return jsonify({'error': 'Ticket not found'}), 404
-    return jsonify({'grievance': dict(g_row)})
+        if not g_row:
+            return jsonify({'error': 'Ticket not found'}), 404
+        return jsonify({'grievance': dict(g_row)})
+    finally:
+        db.close()
 
 @app.route('/api/grievances', methods=['POST'])
 def file_grievance():
@@ -1147,7 +1176,7 @@ def all_markers():
     query = """
         SELECT lp.id, lp.survey_number, lp.latitude, lp.longitude, lp.land_type, 
                lp.status, lp.market_value, lp.village, lp.district, lp.area_acres,
-               u.name as owner_name
+               lp.location_url, u.name as owner_name
         FROM land_parcels lp
         LEFT JOIN users u ON lp.current_owner_id = u.id
         WHERE lp.latitude IS NOT NULL AND lp.longitude IS NOT NULL
