@@ -6,7 +6,7 @@ A secure, transparent full-stack web platform for **land record management** and
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Requirements
 - Python 3.8+ (already installed)
@@ -24,7 +24,7 @@ Open your browser at: **http://localhost:5000**
 
 ---
 
-## 👤 Demo Login Credentials
+##  Demo Login Credentials
 
 | Role | Email | Password |
 |---|---|---|
@@ -34,7 +34,7 @@ Open your browser at: **http://localhost:5000**
 
 ---
 
-## 📄 Pages
+##  Pages
 
 | Page | URL | Description |
 |---|---|---|
@@ -46,7 +46,7 @@ Open your browser at: **http://localhost:5000**
 
 ---
 
-## 🔌 API Endpoints
+##  API Endpoints
 
 ### Auth
 - `POST /api/auth/login` — Login
@@ -93,7 +93,7 @@ hac/
 
 ---
 
-## 🗺️ Map Features
+##  Map Features
 
 - **20 land parcels** seeded across Bengaluru and surrounding areas
 - Click any colored marker to see:
@@ -111,7 +111,7 @@ hac/
 
 ---
 
-## 📊 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -125,7 +125,7 @@ hac/
 
 ---
 
-## 🎨 Design System
+##  Design System
 
 - **Font**: Atkinson Hyperlegible (WCAG/dyslexia-friendly)
 - **Style**: Accessible & Ethical (government grade) + Dark OLED
@@ -134,7 +134,7 @@ hac/
 
 ---
 
-*Built with ❤️ for the Hackathon — Digital Land Record Management & Grievance Redressal System*
+*Built with  for the Hackathon — Digital Land Record Management & Grievance Redressal System*
 =======
 # DEBUGGERS_INNOHACK
 LAND MANAGEMENT SYSTEM

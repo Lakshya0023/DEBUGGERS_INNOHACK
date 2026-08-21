@@ -864,7 +864,6 @@ const STATES_DISTRICTS_DATA = {
   ]
 };
 
-// Helper functions for State-District cascades across all frontend forms and filters
 function getStatesList() {
     return Object.keys(STATES_DISTRICTS_DATA).sort();
 }
