@@ -1,4 +1,3 @@
-# Temporary script placeholder
 import json
 
 try:
