@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 import pandas as pd
 import numpy as np
+
 from sklearn.linear_model import LinearRegression
 import requests
 import re
@@ -437,7 +438,9 @@ def get_lands():
 
     db = get_db()
     query = """
-        SELECT lp.*, u.name as owner_name, u.phone as owner_phone, u.email as owner_email
+        SELECT lp.*, 
+               COALESCE(u.name, (SELECT oh.owner_name FROM ownership_history oh WHERE oh.parcel_id = lp.id ORDER BY oh.from_date DESC LIMIT 1), 'Registered Landholder') as owner_name, 
+               u.phone as owner_phone, u.email as owner_email
         FROM land_parcels lp
         LEFT JOIN users u ON lp.current_owner_id = u.id
         WHERE 1=1
@@ -445,8 +448,8 @@ def get_lands():
     params = []
 
     if search:
-        query += " AND (lp.survey_number LIKE ? OR u.name LIKE ? OR lp.village LIKE ? OR lp.district LIKE ?)"
-        params += [f'%{search}%'] * 4
+        query += " AND (lp.survey_number LIKE ? OR u.name LIKE ? OR lp.village LIKE ? OR lp.district LIKE ? OR EXISTS (SELECT 1 FROM ownership_history oh WHERE oh.parcel_id = lp.id AND oh.owner_name LIKE ?))"
+        params += [f'%{search}%'] * 5
     if district:
         query += " AND lp.district = ?"
         params.append(district)
@@ -547,7 +550,9 @@ def get_land_near():
 
     db = get_db()
     parcels = db.execute("""
-        SELECT lp.*, u.name as owner_name, u.phone as owner_phone, u.email as owner_email,
+        SELECT lp.*, 
+               COALESCE(u.name, (SELECT oh.owner_name FROM ownership_history oh WHERE oh.parcel_id = lp.id ORDER BY oh.from_date DESC LIMIT 1), 'Registered Landholder') as owner_name, 
+               u.phone as owner_phone, u.email as owner_email,
                ((lp.latitude - ?) * (lp.latitude - ?) + (lp.longitude - ?) * (lp.longitude - ?)) as dist_sq
         FROM land_parcels lp
         LEFT JOIN users u ON lp.current_owner_id = u.id
@@ -573,7 +578,9 @@ def get_land_detail(parcel_id):
     db = get_db()
 
     parcel = db.execute("""
-        SELECT lp.*, u.name as owner_name, u.phone as owner_phone, u.email as owner_email, u.aadhaar as owner_aadhaar
+        SELECT lp.*, 
+               COALESCE(u.name, (SELECT oh.owner_name FROM ownership_history oh WHERE oh.parcel_id = lp.id ORDER BY oh.from_date DESC LIMIT 1), 'Registered Landholder') as owner_name, 
+               u.phone as owner_phone, u.email as owner_email, u.aadhaar as owner_aadhaar
         FROM land_parcels lp
         LEFT JOIN users u ON lp.current_owner_id = u.id
         WHERE lp.id = ? OR lp.survey_number = ?
@@ -665,7 +672,16 @@ def create_land():
     village = raw_data.get('village') or 'Central Village'
     status = raw_data.get('status') or 'clear'
     encumbrance = raw_data.get('encumbrance') or 'None'
-    owner_name = raw_data.get('owner_name') or raw_data.get('ownerName') or 'Registered Landholder'
+    owner_name = (raw_data.get('owner_name') or raw_data.get('ownerName') or raw_data.get('current_owner') or raw_data.get('currentOwner') or '').strip()
+    if not owner_name:
+        owner_name = 'Registered Landholder'
+    owner_phone = str(raw_data.get('owner_phone') or raw_data.get('ownerPhone') or '').strip()
+    if not owner_phone:
+        owner_phone = '98' + str(random.randint(10000000, 99999999))
+    owner_aadhaar = str(raw_data.get('owner_aadhaar') or raw_data.get('ownerAadhaar') or '').strip()
+    if not owner_aadhaar:
+        owner_aadhaar = f"{random.randint(1000,9999)}-{random.randint(1000,9999)}-{random.randint(1000,9999)}"
+    owner_email = str(raw_data.get('owner_email') or raw_data.get('ownerEmail') or '').strip()
 
     if not survey_num:
         return jsonify({'error': 'survey_number is required'}), 400
@@ -692,14 +708,35 @@ def create_land():
         now_iso = datetime.now().isoformat()
         curr_yr = datetime.now().year
 
-        # Validate owner_id foreign key
+        # Validate or establish owner_id foreign key
         owner_id = raw_data.get('current_owner_id')
         if owner_id:
             u = db.execute("SELECT id FROM users WHERE id=?", (owner_id,)).fetchone()
             if not u:
                 owner_id = None
-        else:
-            owner_id = None
+
+        if not owner_id and owner_name:
+            existing_user = None
+            if owner_email:
+                existing_user = db.execute("SELECT id FROM users WHERE email=?", (owner_email,)).fetchone()
+            if not existing_user and owner_phone and not owner_phone.startswith('98XX'):
+                existing_user = db.execute("SELECT id FROM users WHERE phone=?", (owner_phone,)).fetchone()
+            if not existing_user:
+                existing_user = db.execute("SELECT id FROM users WHERE name=? AND role='citizen'", (owner_name,)).fetchone()
+
+            if existing_user:
+                owner_id = existing_user['id']
+            else:
+                owner_id = str(uuid.uuid4())
+                clean_name = ''.join(c for c in owner_name.lower() if c.isalnum()) or 'citizen'
+                user_email = owner_email or f"{clean_name}{random.randint(100,999)}@bhoomiseva.gov.in"
+                while db.execute("SELECT id FROM users WHERE email=?", (user_email,)).fetchone():
+                    user_email = f"{clean_name}{random.randint(1000,9999)}@bhoomiseva.gov.in"
+
+                db.execute("""
+                    INSERT INTO users (id, name, email, phone, password, role, aadhaar, created_at)
+                    VALUES (?, ?, ?, ?, ?, 'citizen', ?, ?)
+                """, (owner_id, owner_name, user_email, owner_phone, hash_password('citizen123'), owner_aadhaar, now_iso))
 
         # 1. Insert Parcel (named columns to safely include location_url)
         db.execute("""INSERT INTO land_parcels
@@ -724,7 +761,7 @@ def create_land():
         # 3. Insert Initial Ownership Record
         oh_id = str(uuid.uuid4())
         db.execute("INSERT INTO ownership_history VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                   (oh_id, pid, owner_name, 'XXXX-XXXX-XXXX', '98XXXXXXXX',
+                   (oh_id, pid, owner_name, owner_aadhaar, owner_phone,
                     f"{curr_yr-3}-04-01", None, 'Initial Registration', f"DD-{random.randint(1000,9999)}-{random.randint(100,999)}",
                     market_val, 'First time digital registry entry'))
 
@@ -1176,15 +1213,16 @@ def all_markers():
     query = """
         SELECT lp.id, lp.survey_number, lp.latitude, lp.longitude, lp.land_type, 
                lp.status, lp.market_value, lp.village, lp.district, lp.area_acres,
-               lp.location_url, u.name as owner_name
+               lp.location_url, 
+               COALESCE(u.name, (SELECT oh.owner_name FROM ownership_history oh WHERE oh.parcel_id = lp.id ORDER BY oh.from_date DESC LIMIT 1), 'Registered Landholder') as owner_name
         FROM land_parcels lp
         LEFT JOIN users u ON lp.current_owner_id = u.id
         WHERE lp.latitude IS NOT NULL AND lp.longitude IS NOT NULL
     """
     params = []
     if search:
-        query += " AND (lp.survey_number LIKE ? OR u.name LIKE ? OR lp.village LIKE ? OR lp.district LIKE ?)"
-        params += [f'%{search}%'] * 4
+        query += " AND (lp.survey_number LIKE ? OR u.name LIKE ? OR lp.village LIKE ? OR lp.district LIKE ? OR EXISTS (SELECT 1 FROM ownership_history oh WHERE oh.parcel_id = lp.id AND oh.owner_name LIKE ?))"
+        params += [f'%{search}%'] * 5
     if district:
         query += " AND lp.district = ?"
         params.append(district)

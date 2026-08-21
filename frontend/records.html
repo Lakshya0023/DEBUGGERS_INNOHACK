@@ -618,7 +618,7 @@
                     <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">Overview</button>
                     <button class="tab-btn" data-tab="history" onclick="switchTab('history')">Ownership History</button>
                     <button class="tab-btn" data-tab="price" onclick="switchTab('price')">Price History</button>
-                    <button class="tab-btn" data-tab="ml" onclick="switchTab('ml')" style="color:#2563eb;font-weight:700;">🤖 AI/ML Forecast</button>
+                    <button class="tab-btn" data-tab="ml" onclick="switchTab('ml')" style="color:#2563eb;font-weight:700;">AI/ML Forecast</button>
                     <button class="tab-btn" data-tab="location" onclick="switchTab('location')">📍 Location</button>
                     <button class="tab-btn" data-tab="grievances" onclick="switchTab('grievances')">Grievances</button>
                 </div>
@@ -629,6 +629,10 @@
                     <!-- Overview Tab -->
                     <div id="tab-overview" class="tab-panel active">
                         <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-label">Current Owner</div>
+                                <div class="kpi-value" id="moOwner" style="color: #1e293b; font-weight: 700;">-</div>
+                            </div>
                             <div class="kpi-card">
                                 <div class="kpi-label">District</div>
                                 <div class="kpi-value" id="moDistrict">-</div>
@@ -958,7 +962,7 @@
                     <td>${parcel.area_acres}</td>
                     <td><span class="badge badge-${parcel.land_type.toLowerCase()}">${parcel.land_type}</span></td>
                     <td><span class="badge badge-${parcel.status.toLowerCase()}">${parcel.status.charAt(0).toUpperCase() + parcel.status.slice(1)}</span></td>
-                    <td>${parcel.owner_name}</td>
+                    <td>${parcel.owner_name || 'Registered Landholder'}</td>
                     <td>${inrFormat.format(parcel.market_value)}</td>
                 `;
                 tbody.appendChild(tr);
@@ -1030,6 +1034,7 @@
             sb.className = `badge badge-${details.parcel.status.toLowerCase()}`;
             sb.textContent = details.parcel.status.toUpperCase();
 
+            document.getElementById('moOwner').textContent = details.parcel.owner_name || 'Registered Landholder';
             document.getElementById('moDistrict').textContent = details.parcel.district;
             document.getElementById('moTaluk').textContent = details.parcel.taluk;
             document.getElementById('moVillage').textContent = details.parcel.village;

@@ -542,6 +542,18 @@
                             <input type="text" class="form-control" name="surveyNumber" placeholder="e.g. 102/A" required>
                         </div>
                         <div class="form-group">
+                            <label>Current Owner Full Name</label>
+                            <input type="text" class="form-control" name="ownerName" placeholder="e.g. Ramesh Kumar Sharma" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Owner Phone Number</label>
+                            <input type="tel" class="form-control" name="ownerPhone" placeholder="e.g. 9876543210">
+                        </div>
+                        <div class="form-group">
+                            <label>Owner Aadhaar / ID (Optional)</label>
+                            <input type="text" class="form-control" name="ownerAadhaar" placeholder="e.g. 1234-5678-9012">
+                        </div>
+                        <div class="form-group">
                             <label>State / Union Territory</label>
                             <select class="form-control" name="state" id="loc-state" required>
                                 <option value="">Select State / UT</option>
@@ -1076,7 +1088,7 @@
 
                 const dispLat = result.latitude || (coords ? coords.lat : 20.59);
                 const dispLng = result.longitude || (coords ? coords.lng : 78.96);
-                alert(`✅ Land record added successfully!\nSurvey: ${data.surveyNumber}\nLocation: ${data.district}, ${data.state}\nCoordinates: ${Number(dispLat).toFixed(5)}, ${Number(dispLng).toFixed(5)}\n\nThe record is now live on the Map Explorer!`);
+                alert(`✅ Land record added successfully!\nSurvey: ${data.surveyNumber}\nOwner: ${data.ownerName || 'Registered Landholder'}\nLocation: ${data.district}, ${data.state}\nCoordinates: ${Number(dispLat).toFixed(5)}, ${Number(dispLng).toFixed(5)}\n\nThe record is now live on the Map Explorer & Land Records!`);
                 form.reset();
                 toggleAddForm();
                 fetchAnalytics();
