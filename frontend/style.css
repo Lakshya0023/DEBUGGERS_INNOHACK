@@ -1049,6 +1049,26 @@ textarea.form-control { resize: vertical; min-height: 100px; }
   z-index: 1;
 }
 
+/* ── FOOTER ──────────────────────────────────────────────── */
+.site-footer, .magical-footer {
+  background: #020617;
+  border-top: 1px solid var(--glass-border);
+  padding: 40px 0 24px;
+  position: relative;
+  z-index: 10;
+}
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-copy {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
 /* ── ANIMATIONS ─────────────────────────────────────────── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
@@ -1079,6 +1099,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
   .features-grid { grid-template-columns: 1fr; }
   .filter-bar { flex-direction: column; }
   .filter-bar .search-bar { width: 100%; }
+  .footer-inner { flex-direction: column; text-align: center; gap: 12px; }
 }
 @media (max-width: 480px) {
   .kpi-grid { grid-template-columns: 1fr; }

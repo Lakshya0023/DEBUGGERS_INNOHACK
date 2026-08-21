@@ -356,49 +356,100 @@
       z-index: 0;
     }
 
-    /* ── LIVE METRICS FLOATING HUD BAR ── */
-    .metrics-bar-section {
+    /* ── STATS TICKER COMPONENT CSS ── */
+    .ticker-stats-section {
+      padding: 60px 0;
       position: relative;
+      overflow: hidden;
       z-index: 10;
-      margin-top: -20px;
-      margin-bottom: 70px;
     }
-    .metrics-grid-4 {
+    .ticker-stats-section .ticker-glow-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(56,189,248,0.08), transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16,185,129,0.08), transparent 50%);
+      pointer-events: none;
+    }
+    .ticker-header {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto 36px;
+      position: relative;
+      z-index: 1;
+    }
+    .ticker-header h2 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #38bdf8, #34d399, #fbbf24);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .ticker-header p {
+      color: #94a3b8;
+      font-size: 0.92rem;
+    }
+    .ticker-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
     }
-    @media (max-width: 900px) {
-      .metrics-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1024px) {
+      .ticker-grid { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 500px) {
-      .metrics-grid-4 { grid-template-columns: 1fr; }
+    @media (max-width: 540px) {
+      .ticker-grid { grid-template-columns: 1fr; }
     }
-
-    .metric-hud-pod {
-      background: rgba(15, 23, 42, 0.8);
+    .ticker-card {
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 18px;
+      padding: 24px;
       text-align: center;
       position: relative;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      transition: transform 0.25s ease, border-color 0.25s ease;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
-    .metric-hud-pod:hover {
+    .ticker-card:hover {
       transform: translateY(-4px);
-      border-color: rgba(59, 130, 246, 0.4);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.15);
     }
-    .pod-number {
-      font-size: 1.8rem;
-      font-weight: 800;
+    .ticker-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 18px;
+    }
+    .ticker-number-wrap {
+      font-size: 2.1rem;
+      font-weight: 900;
       color: #ffffff;
-      margin-bottom: 2px;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      font-family: var(--font-display, inherit);
     }
-    .pod-label {
-      font-size: 0.78rem;
+    .ticker-count {
+      color: #ffffff;
+    }
+    .ticker-suffix {
+      color: #38bdf8;
+      font-size: 1.6rem;
       font-weight: 700;
+    }
+    .ticker-label {
+      font-size: 0.8rem;
+      font-weight: 600;
       color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -450,11 +501,33 @@
       line-height: 1.65;
     }
 
-    /* ── FOOTER ── */
+    /* ── FOOTER CSS ── */
     .magical-footer {
       background: #020617;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 48px 0 24px;
+      padding: 40px 0 24px;
+      position: relative;
+      z-index: 10;
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-copy {
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+
+    /* ── FOOTER RESPONSIVE CSS ── */
+    @media (max-width: 768px) {
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+      }
     }
   </style>
 </head>
@@ -710,34 +783,122 @@
   </div>
 </section>
 
-<!-- ── LIVE NETWORK METRICS BAR ── -->
-<section class="metrics-bar-section">
+<!-- ============================================================
+     BhoomiSeva — Stats With Number Ticker Component
+     Self-contained component with inline IntersectionObserver JS
+     ============================================================ -->
+<section class="ticker-stats-section">
+  <div class="ticker-glow-bg"></div>
   <div class="container">
-    <div class="metrics-grid-4">
-      
-      <div class="metric-hud-pod">
-        <div class="pod-number" id="stat-parcels">50,000+</div>
-        <div class="pod-label">Digital Land Records</div>
+    <div class="ticker-header">
+      <h2>National Land Registry Telemetry</h2>
+      <p>Real-time analytics and decentralized GIS records across Indian states</p>
+    </div>
+    
+    <div class="ticker-grid">
+      <!-- 1. Total Digital Land Parcels -->
+      <div class="ticker-card">
+        <div class="ticker-icon-box" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <div class="ticker-number-wrap">
+          <span class="ticker-count" data-target="52840" id="ticker-parcels">0</span>
+          <span class="ticker-suffix">+</span>
+        </div>
+        <div class="ticker-label">Digital Land Records</div>
       </div>
 
-      <div class="metric-hud-pod">
-        <div class="pod-number" id="stat-districts">36</div>
-        <div class="pod-label">States & UTs Covered</div>
+      <!-- 2. States & UTs -->
+      <div class="ticker-card">
+        <div class="ticker-icon-box" style="background: rgba(52, 211, 153, 0.15); color: #34d399;">
+          <i class="fa-solid fa-map-location-dot"></i>
+        </div>
+        <div class="ticker-number-wrap">
+          <span class="ticker-count" data-target="36" id="ticker-states">0</span>
+          <span class="ticker-suffix"></span>
+        </div>
+        <div class="ticker-label">States & UTs Covered</div>
       </div>
 
-      <div class="metric-hud-pod">
-        <div class="pod-number" id="stat-grievances">1,250+</div>
-        <div class="pod-label">Grievances Resolved</div>
+      <!-- 3. GIS Cadastral Precision -->
+      <div class="ticker-card">
+        <div class="ticker-icon-box" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">
+          <i class="fa-solid fa-satellite"></i>
+        </div>
+        <div class="ticker-number-wrap">
+          <span class="ticker-count" data-target="100" id="ticker-gis">0</span>
+          <span class="ticker-suffix">%</span>
+        </div>
+        <div class="ticker-label">Geotagged Cadastral Layers</div>
       </div>
 
-      <div class="metric-hud-pod">
-        <div class="pod-number">100%</div>
-        <div class="pod-label">GIS Verified Accuracy</div>
+      <!-- 4. Mutation & Grievance SLA -->
+      <div class="ticker-card">
+        <div class="ticker-icon-box" style="background: rgba(248, 113, 113, 0.15); color: #f87171;">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="ticker-number-wrap">
+          <span class="ticker-count" data-target="99" id="ticker-sla">0</span>
+          <span class="ticker-suffix">.8%</span>
+        </div>
+        <div class="ticker-label">Grievance Redressal SLA</div>
       </div>
-
     </div>
   </div>
 </section>
+
+<!-- Stats Ticker Component JavaScript (Immediately following the component) -->
+<script>
+  (function initStatsTicker() {
+    function animateCount(el, target, duration = 1600) {
+      let start = 0;
+      const stepTime = 16;
+      const steps = duration / stepTime;
+      const increment = target / steps;
+      
+      const timer = setInterval(() => {
+        start += increment;
+        if (start >= target) {
+          el.textContent = target.toLocaleString();
+          clearInterval(timer);
+        } else {
+          el.textContent = Math.floor(start).toLocaleString();
+        }
+      }, stepTime);
+    }
+
+    async function syncLiveParcelCount() {
+      try {
+        const res = await fetch('/api/analytics/summary');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.summary && data.summary.total_parcels) {
+            const el = document.getElementById('ticker-parcels');
+            if (el) el.setAttribute('data-target', data.summary.total_parcels);
+          }
+        }
+      } catch(e) {}
+    }
+
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          syncLiveParcelCount().then(() => {
+            const counters = entry.target.querySelectorAll('.ticker-count');
+            counters.forEach(c => {
+              const target = parseInt(c.getAttribute('data-target'), 10) || 0;
+              animateCount(c, target);
+            });
+          });
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.25 });
+
+    const section = document.querySelector('.ticker-stats-section');
+    if (section) observer.observe(section);
+  })();
+</script>
 
 <!-- ── CORE FEATURES (MINIMAL MODERN) ── -->
 <section id="features" style="padding: 40px 0 80px;">
@@ -801,16 +962,16 @@
   </div>
 </section>
 
-<!-- ── MINIMAL FOOTER ── -->
+<!-- ── FOOTER HTML ── -->
 <footer class="magical-footer">
-  <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+  <div class="container footer-inner">
     <div class="brand-box">
       <div class="brand-icon" style="width:28px;height:28px;font-size:13px;">
         <i class="fa-solid fa-layer-group"></i>
       </div>
       <span style="font-weight:700;font-size:0.92rem;">BhoomiSeva — Digital India Land Initiative</span>
     </div>
-    <div style="font-size:0.8rem;color:#64748b;">
+    <div class="footer-copy">
       © 2024-2026 BhoomiSeva Portal. Built for National Land Governance.
     </div>
   </div>
@@ -951,20 +1112,6 @@
     requestAnimationFrame(animate);
   }
   animate();
-
-  /* 5. STATS TALLY */
-  async function loadStats() {
-    try {
-      const res = await fetch('/api/analytics/summary');
-      if (res.ok) {
-        const d = await res.json();
-        if (d.summary && d.summary.total_parcels) {
-          document.getElementById('stat-parcels').textContent = d.summary.total_parcels.toLocaleString() + '+';
-        }
-      }
-    } catch(e) {}
-  }
-  loadStats();
 </script>
 
 </body>
