@@ -1,10 +1,23 @@
-import sqlite3, json, os, hashlib, uuid, random
+import sqlite3, json, os, hashlib, uuid, random, shutil
 from datetime import datetime, timedelta
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'land_records.db')
+def get_db_path():
+    if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'):
+        tmp_db = '/tmp/land_records.db'
+        orig_db = os.path.join(os.path.dirname(__file__), 'land_records.db')
+        if not os.path.exists(tmp_db) and os.path.exists(orig_db):
+            try:
+                shutil.copyfile(orig_db, tmp_db)
+            except Exception as e:
+                print("DB Copy Error:", e)
+        return tmp_db if os.path.exists(tmp_db) else orig_db
+    return os.path.join(os.path.dirname(__file__), 'land_records.db')
+
+DB_PATH = get_db_path()
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH, timeout=30.0, isolation_level=None)
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path, timeout=30.0, isolation_level=None)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("PRAGMA busy_timeout = 30000")

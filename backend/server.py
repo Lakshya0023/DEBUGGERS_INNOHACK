@@ -62,10 +62,12 @@ STATE_CENTROIDS = {
     "West Bengal": (22.9868, 87.8550),
 }
 
-app = Flask(__name__, static_folder='../frontend', static_url_path='')
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend')
+app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
 CORS(app)
 
-SECRET = 'LAND_RECORDS_SECRET_2024_GOV_IN'
+SECRET = os.environ.get('JWT_SECRET') or os.environ.get('SECRET_KEY') or 'LAND_RECORDS_SECRET_2024_GOV_IN'
+app.config['SECRET_KEY'] = SECRET
 
 # ─────────────────────────────────────────────
 # JWT (minimal, no external library) 
@@ -1252,11 +1254,14 @@ def all_markers():
 # ─────────────────────────────────────────────
 @app.route('/')
 def index():
-    return send_from_directory('../frontend', 'index.html')
+    return send_from_directory(FRONTEND_DIR, 'index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
-    return send_from_directory('../frontend', path)
+    target = os.path.join(FRONTEND_DIR, path)
+    if os.path.isfile(target):
+        return send_from_directory(FRONTEND_DIR, path)
+    return send_from_directory(FRONTEND_DIR, 'index.html')
 
 
 # ═══════════════════════════════════════════════════
