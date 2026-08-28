@@ -1253,14 +1253,12 @@ def all_markers():
 # STATIC FILES
 # ─────────────────────────────────────────────
 @app.route('/')
+@app.route('/index.html')
+@app.route('/api/index.py')
+@app.route('/api/index')
+@app.route('/api')
+@app.route('/api/')
 def index():
-    return send_from_directory(FRONTEND_DIR, 'index.html')
-
-@app.route('/<path:path>')
-def static_files(path):
-    target = os.path.join(FRONTEND_DIR, path)
-    if os.path.isfile(target):
-        return send_from_directory(FRONTEND_DIR, path)
     return send_from_directory(FRONTEND_DIR, 'index.html')
 
 
@@ -2788,6 +2786,21 @@ def service_i_rtc():
         "download_url":  f"https://bhoomi.karnataka.gov.in/irtc/download/{parcel['survey_number'].replace('/','-')}",
         "generated_at":  datetime.now().isoformat(),
     })
+
+
+# ─────────────────────────────────────────────
+# CATCH-ALL STATIC FILES & SPA FALLBACK
+# ─────────────────────────────────────────────
+@app.route('/<path:path>')
+def static_files(path):
+    if path.startswith('api/'):
+        return jsonify({'error': 'API endpoint not found'}), 404
+    target = os.path.join(FRONTEND_DIR, path)
+    if os.path.isfile(target):
+        return send_from_directory(FRONTEND_DIR, path)
+    if os.path.isfile(target + '.html'):
+        return send_from_directory(FRONTEND_DIR, path + '.html')
+    return send_from_directory(FRONTEND_DIR, 'index.html')
 
 
 # ─────────────────────────────────────────────
